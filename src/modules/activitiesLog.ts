@@ -47,10 +47,18 @@ export class ActivityLog {
         this.determineItemActionType(event, enrichedData) : 
         `${type}_${event}`;
 
+      // testing
+      const item = await Zotero.Items.get(activityId);
       ztoolkit.log("[ZotFlow] Logging activity:", {
         type,
         event: eventType,
         activityId,
+        item,
+        annotationText: item._annotationText,
+        annotationComment: item._annotationComment,
+        tags: item._tags,
+        annotations: item._annotations,
+        annotationColor: item._annotationColor,
         timestamp: new Date().toISOString()
       });
 
@@ -125,8 +133,11 @@ export class ActivityLog {
     const selectedItems = activePane.getSelectedItems().map(item => ({
       id: item.id,
       key: item.key,
-      title: item.getField('title')
+      libraryId: item.libraryID,
+      title: item.getField('title'),
     }));
+
+    ztoolkit.log("[ZotFlow] Enriching activity data:", selectedItems);
 
     const context: ActivityContext = {
       timestamp,
@@ -158,7 +169,6 @@ export class ActivityLog {
         title: tabInfo.title,
         data: tabInfo.data
       };
-    
       if (tabInfo.type === "reader" && tabInfo.data?.itemID) {
         const item = await Zotero.Items.getAsync(tabInfo.data.itemID);
         if (item) {
