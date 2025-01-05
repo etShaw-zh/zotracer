@@ -7,6 +7,6 @@
     "skipLibCheck": true,
     "strict": true
   },
-  "include": ["src", "typings", "node_modules/zotero-types"],
+  "include": ["src", "typings", "node_modules/zotero-types", "addon/content/activityLog.js"],
   "exclude": ["build", "addon"]
 }
