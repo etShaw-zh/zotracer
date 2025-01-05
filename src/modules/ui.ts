@@ -19,17 +19,17 @@ export class UIManager {
 
   public registerToolbarButton() {
     if (!this.win || !this.win.document) {
-      ztoolkit.log("[ZotFlow] Window or document not available");
+      ztoolkit.log("[ZoTracer] Window or document not available");
       return;
     }
 
     try {
-      // Add ZotFlow button to the toolbar
+      // Add ZoTracer button to the toolbar
       const button = ztoolkit.UI.createElement(this.win.document, "toolbarbutton", {
-        id: "zotflow-button",
+        id: "ZoTracer-button",
         attributes: {
           class: "zotero-tb-button",
-          tooltiptext: "ZotFlow Activity Log",
+          tooltiptext: "ZoTracer Activity Log",
           image: `chrome://${config.addonRef}/content/icons/favicon.png`
         },
         namespace: "xul"
@@ -44,31 +44,31 @@ export class UIManager {
           this.openActivityLogWindow();
         });
       } else {
-        ztoolkit.log("[ZotFlow] Toolbar or button element not found");
+        ztoolkit.log("[ZoTracer] Toolbar or button element not found");
       }
     } catch (error) {
-      ztoolkit.log("[ZotFlow] Error registering toolbar button:", error);
+      ztoolkit.log("[ZoTracer] Error registering toolbar button:", error);
     }
   }
 
   private openActivityLogWindow() {
     if (!this.win) {
-      ztoolkit.log("[ZotFlow] Window not available");
+      ztoolkit.log("[ZoTracer] Window not available");
       return;
     }
 
     try {
       const activityWindow = this.win.open(
         `chrome://${config.addonRef}/content/activityLog.xhtml`,
-        "zotflow-activity-log",
+        "ZoTracer-activity-log",
         "chrome,centerscreen,resizable"
       );
 
       if (!activityWindow) {
-        ztoolkit.log("[ZotFlow] Failed to open activity log window");
+        ztoolkit.log("[ZoTracer] Failed to open activity log window");
       }
     } catch (error) {
-      ztoolkit.log("[ZotFlow] Error opening activity log window:", error);
+      ztoolkit.log("[ZoTracer] Error opening activity log window:", error);
     }
   }
 
@@ -79,12 +79,12 @@ export class UIManager {
 
     try {
       // Remove toolbar button
-      const button = this.win.document.getElementById("zotflow-button");
+      const button = this.win.document.getElementById("ZoTracer-button");
       if (button) {
         button.remove();
       }
     } catch (error) {
-      ztoolkit.log("[ZotFlow] Error unregistering UI:", error);
+      ztoolkit.log("[ZoTracer] Error unregistering UI:", error);
     }
   }
 }

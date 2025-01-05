@@ -38,7 +38,7 @@ export class ActivityLog {
   static async logActivity({ event, ids, enrichedData, type }: ActivityLogParams): Promise<void> {
     const activityId = ids[0]?.toString();
     if (!activityId) {
-      ztoolkit.log("[ZotFlow] Warning: No activity ID provided", { type, event });
+      ztoolkit.log("[ZoTracer] Warning: No activity ID provided", { type, event });
       return;
     }
 
@@ -49,7 +49,7 @@ export class ActivityLog {
 
       // testing
       const item = await Zotero.Items.get(activityId);
-      ztoolkit.log("[ZotFlow] Logging activity:", {
+      ztoolkit.log("[ZoTracer] Logging activity:", {
         type,
         event: eventType,
         activityId,
@@ -69,7 +69,7 @@ export class ActivityLog {
         type
       );
     } catch (error) {
-      ztoolkit.log("[ZotFlow] Error logging activity:", { 
+      ztoolkit.log("[ZoTracer] Error logging activity:", { 
         error,
         type,
         event,
@@ -137,7 +137,7 @@ export class ActivityLog {
       title: item.getField('title'),
     }));
 
-    ztoolkit.log("[ZotFlow] Enriching activity data:", selectedItems);
+    ztoolkit.log("[ZoTracer] Enriching activity data:", selectedItems);
 
     const context: ActivityContext = {
       timestamp,
@@ -199,7 +199,7 @@ export class ActivityLog {
                     dateModified: annotation.dateModified
                   } : null;
                 } catch (error) {
-                  ztoolkit.log("[ZotFlow] Error getting annotation:", { error, annotationId });
+                  ztoolkit.log("[ZoTracer] Error getting annotation:", { error, annotationId });
                   return null;
                 }
               })

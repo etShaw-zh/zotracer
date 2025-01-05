@@ -4,14 +4,14 @@ menuitem-label = 插件模板：帮助示例
 menupopup-label = 插件模板：弹出菜单
 menuitem-submenulabel = 插件模板
 menuitem-filemenulabel = 插件模板：文件菜单项
-prefs-title = ZotFlow 设置
+prefs-title = ZoTracer 设置
 prefs-table-title = 标题
 prefs-table-detail = 详情
 tabpanel-lib-tab-label = 库标签页
 tabpanel-reader-tab-label = 阅读器标签页
 
 # Activity Log Window
-activitylog-title = ZotFlow 活动日志
+activitylog-title = ZoTracer 活动日志
 activitylog-filter-label = 按类型筛选：
 activitylog-filter-all = 全部
 activitylog-filter-item = 条目

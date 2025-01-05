@@ -15,11 +15,11 @@ export class DatabaseManager {
 
   public async init() {
     try {
-      this.db = new Zotero.DBConnection("zotflow");
+      this.db = new Zotero.DBConnection("ZoTracer");
       await this.createTables();
-      ztoolkit.log("ZotFlow database initialized successfully");
+      ztoolkit.log("ZoTracer database initialized successfully");
     } catch (error) {
-      ztoolkit.log("Error initializing ZotFlow database:", error);
+      ztoolkit.log("Error initializing ZoTracer database:", error);
       throw error;
     }
   }
@@ -61,7 +61,7 @@ export class DatabaseManager {
     ];
 
     // Log the activity data
-    ztoolkit.log("[ZotFlow] Logging activity:", {
+    ztoolkit.log("[ZoTracer] Logging activity:", {
       timestamp,
       actionType,
       itemId,

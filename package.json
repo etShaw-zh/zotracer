@@ -1,23 +1,23 @@
 {
-  "name": "zot-flow",
+  "name": "zotracer",
   "version": "0.0.1",
-  "description": "ZotFlow is a Zotero plugin that tracks your research activities, creating a timeline of actions like saving or opening references. Analyze your study habits and streamline your research process with ease. ZotFlow 是一款 Zotero 插件，用于记录您的文献活动，如保存或打开文献，生成时间线。轻松分析学习习惯，优化研究流程。",
+  "description": "ZoTracer is a Zotero plugin that tracks your research activities, creating a timeline of actions like saving or opening references. Analyze your study habits and streamline your research process with ease. ZoTracer 是一款 Zotero 插件，用于记录您的文献活动，如保存或打开文献，生成时间线。轻松分析学习习惯，优化研究流程。",
   "config": {
-    "addonName": "ZotFlow",
-    "addonID": "zot-flow@euclpts.com",
-    "addonRef": "zot-flow",
-    "addonInstance": "ZotFlow",
-    "prefsPrefix": "extensions.zotero.zotflow"
+    "addonName": "ZoTracer",
+    "addonID": "zotracer@euclpts.com",
+    "addonRef": "zotracer",
+    "addonInstance": "ZoTracer",
+    "prefsPrefix": "extensions.zotero.zotracer"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/etShaw-zh/ZotFlow.git"
+    "url": "git+https://github.com/etShaw-zh/zotracer.git"
   },
   "author": "etShaw-zh",
   "bugs": {
-    "url": "https://github.com/etShaw-zh/ZotFlow/issues"
+    "url": "https://github.com/etShaw-zh/zotracer/issues"
   },
-  "homepage": "https://github.com/etShaw-zh/ZotFlow#readme",
+  "homepage": "https://github.com/etShaw-zh/zotracer#readme",
   "license": "AGPL-3.0-or-later",
   "scripts": {
     "start": "zotero-plugin serve",

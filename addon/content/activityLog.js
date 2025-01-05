@@ -1,4 +1,4 @@
-var ZotFlowActivityLog = {
+var ZoTracerActivityLog = {
   init: async function() {
     try {
       // Wait for Zotero to be ready
@@ -9,7 +9,7 @@ var ZotFlowActivityLog = {
       this.tree = document.getElementById('activity-log');
       
       if (!this.filterType || !this.tree) {
-        Zotero.debug("[ZotFlow] Failed to initialize UI elements");
+        Zotero.debug("[ZoTracer] Failed to initialize UI elements");
         return;
       }
       
@@ -19,19 +19,19 @@ var ZotFlowActivityLog = {
       // Initial load
       await this.updateActivityLog();
     } catch (error) {
-      Zotero.debug("[ZotFlow] Error initializing activity log: " + error);
+      Zotero.debug("[ZoTracer] Error initializing activity log: " + error);
     }
   },
 
   updateActivityLog: async function() {
-    Zotero.debug("[ZotFlow] Updating activity log");
+    Zotero.debug("[ZoTracer] Updating activity log");
     try {
-      if (!Zotero.ZotFlow || !Zotero.ZotFlow.DatabaseManager) {
-        Zotero.debug("[ZotFlow] Database manager not available");
+      if (!Zotero.ZoTracer || !Zotero.ZoTracer.DatabaseManager) {
+        Zotero.debug("[ZoTracer] Database manager not available");
         return;
       }
 
-      const activities = await Zotero.ZotFlow.DatabaseManager.getInstance().getActivities(100, 0);
+      const activities = await Zotero.ZoTracer.DatabaseManager.getInstance().getActivities(100, 0);
       const type = this.filterType.value;
       
       // Filter activities if needed
@@ -59,7 +59,7 @@ var ZotFlowActivityLog = {
         }
       }
     } catch (error) {
-      Zotero.debug("[ZotFlow] Error updating activity log: " + error);
+      Zotero.debug("[ZoTracer] Error updating activity log: " + error);
     }
   },
 
@@ -91,7 +91,7 @@ var ZotFlowActivityLog = {
       treeItem.appendChild(treeRow);
       return treeItem;
     } catch (error) {
-      Zotero.debug("[ZotFlow] Error creating activity row: " + error);
+      Zotero.debug("[ZoTracer] Error creating activity row: " + error);
       return null;
     }
   }
@@ -100,8 +100,8 @@ var ZotFlowActivityLog = {
 // Initialize when window loads
 window.addEventListener('load', () => {
   try {
-    ZotFlowActivityLog.init();
+    ZoTracerActivityLog.init();
   } catch (error) {
-    Zotero.debug("[ZotFlow] Error in window load handler: " + error);
+    Zotero.debug("[ZoTracer] Error in window load handler: " + error);
   }
 });

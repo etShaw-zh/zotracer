@@ -44,7 +44,7 @@ async function onMainWindowLoad(win: Window): Promise<void> {
     // Initialize window-specific resources
     await initializeWindowResources(win);
   } catch (error) {
-    ztoolkit.log("[ZotFlow] Error in onMainWindowLoad:", error);
+    ztoolkit.log("[ZoTracer] Error in onMainWindowLoad:", error);
   }
 }
 
@@ -53,7 +53,7 @@ async function initializeWindowResources(win: Window) {
     // @ts-ignore This is a moz feature
     win.MozXULElement.insertFTLIfNeeded(`${addon.data.config.addonRef}-mainWindow.ftl`);
   } catch (error) {
-    ztoolkit.log("[ZotFlow] Error initializing window resources:", error);
+    ztoolkit.log("[ZoTracer] Error initializing window resources:", error);
   }
 }
 
@@ -96,10 +96,10 @@ async function onNotify(
         await ActivityLog.logItemActivity(event, ids, enrichedData);
         break;
       default:
-        ztoolkit.log("[ZotFlow] Unhandled activity type:", { type, event });
+        ztoolkit.log("[ZoTracer] Unhandled activity type:", { type, event });
     }
   } catch (error) {
-    ztoolkit.log("[ZotFlow] Error in activity notification:", { error });
+    ztoolkit.log("[ZoTracer] Error in activity notification:", { error });
   }
 }
 
