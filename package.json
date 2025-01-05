@@ -1,23 +1,23 @@
 {
-  "name": "zotero-plugin-template",
-  "version": "3.0.2",
-  "description": "Zotero Plugin Template",
+  "name": "zot-flow",
+  "version": "0.0.1",
+  "description": "ZotFlow is a Zotero plugin that tracks your research activities, creating a timeline of actions like saving or opening references. Analyze your study habits and streamline your research process with ease. ZotFlow 是一款 Zotero 插件，用于记录您的文献活动，如保存或打开文献，生成时间线。轻松分析学习习惯，优化研究流程。",
   "config": {
-    "addonName": "Zotero Plugin Template",
-    "addonID": "addontemplate@euclpts.com",
-    "addonRef": "addontemplate",
-    "addonInstance": "AddonTemplate",
-    "prefsPrefix": "extensions.zotero.addontemplate"
+    "addonName": "ZotFlow",
+    "addonID": "zot-flow@euclpts.com",
+    "addonRef": "zot-flow",
+    "addonInstance": "ZotFlow",
+    "prefsPrefix": "extensions.zotero.zotflow"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/windingwind/zotero-plugin-template.git"
+    "url": "git+https://github.com/etShaw-zh/ZotFlow.git"
   },
-  "author": "windingwind",
+  "author": "etShaw-zh",
   "bugs": {
-    "url": "https://github.com/windingwind/zotero-plugin-template/issues"
+    "url": "https://github.com/etShaw-zh/ZotFlow/issues"
   },
-  "homepage": "https://github.com/windingwind/zotero-plugin-template#readme",
+  "homepage": "https://github.com/etShaw-zh/ZotFlow#readme",
   "license": "AGPL-3.0-or-later",
   "scripts": {
     "start": "zotero-plugin serve",
