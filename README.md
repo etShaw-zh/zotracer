@@ -1,12 +1,24 @@
-# ZoTracer
+<p align="center">
+    <img src="addon/content/imgs/logo.GIF" width=45%/ alt="">
+    <br>
+    <div align="center">
+        <img src="https://img.shields.io/github/license/etShaw-zh/zotracer?color=2E75B6"  alt="License">
+        <img src="https://img.shields.io/badge/Zotero-7-green?style=flat-square&logo=zotero&logoColor=CC2936" alt="zotero target version" />
+        <img src="https://img.shields.io/badge/Using-Zotero%20Plugin%20Template-blue?style=flat-square&logo=github" alt="Using Zotero Plugin Template" />
+        <img src="https://img.shields.io/github/stars/etShaw-zh/zotracer?color=2E75B6" alt="Stars" />
+        <img src="https://img.shields.io/github/downloads/etShaw-zh/zotracer/total?logo=github&color=2E75B6" alt='download' />
+        <img src="https://img.shields.io/github/downloads/etShaw-zh/zotracer/latest/total?color=2E75B6" alt='latest' />
+        <img src='https://readthedocs.org/projects/zotracer/badge/?version=latest' alt='Docs' />
+    </div>
+</p>
 
-[![zotero target version](https://img.shields.io/badge/Zotero-7-green?style=flat-square&logo=zotero&logoColor=CC2936)](https://www.zotero.org)
-[![Using Zotero Plugin Template](https://img.shields.io/badge/Using-Zotero%20Plugin%20Template-blue?style=flat-square&logo=github)](https://github.com/windingwind/zotero-plugin-template)
-[![GitHub Repo stars](https://img.shields.io/github/stars/etShaw-zh/zotracer?label=ZoTracer&style=flat-square)](https://github.com/etShaw-zh/zotracer)
+<p align="center">
+    English | <a href="doc/README-zhCN.md">简体中文</a>
+</p>
+
+## Introduction
 
 ZoTracer is a [Zotero](https://www.zotero.org/) plugin that tracks your research activities, creating a timeline of actions like saving or opening references. Analyze your study habits and streamline your research process with ease.
-
-[English](README.md) | [简体中文](doc/README-zhCN.md)
 
 > [!tip]
 > 👁 Watch this repo so that you can be notified whenever there are fixes & updates.
@@ -41,4 +53,4 @@ ZoTracer is a [Zotero](https://www.zotero.org/) plugin that tracks your research
 
 Use this code under AGPL. No warranties are provided. Keep the laws of your locality in mind!
 
-If you want to change the license, please contact me at <wyzlshx@foxmail.com>
+If you want to change the license, please contact me at <et_shaw@126.com>

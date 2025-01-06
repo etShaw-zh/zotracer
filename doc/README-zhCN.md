@@ -1,12 +1,24 @@
-# ZoTracer
+<p align="center">
+    <img src="../addon/content/imgs/logo.GIF" width=45%/ alt="">
+    <br>
+    <div align="center">
+        <img src="https://img.shields.io/github/license/etShaw-zh/zotracer?color=2E75B6"  alt="License">
+        <img src="https://img.shields.io/badge/Zotero-7-green?style=flat-square&logo=zotero&logoColor=CC2936" alt="zotero target version" />
+        <img src="https://img.shields.io/badge/Using-Zotero%20Plugin%20Template-blue?style=flat-square&logo=github" alt="Using Zotero Plugin Template" />
+        <img src="https://img.shields.io/github/stars/etShaw-zh/zotracer?color=2E75B6" alt="Stars" />
+        <img src="https://img.shields.io/github/downloads/etShaw-zh/zotracer/total?logo=github&color=2E75B6" alt='download' />
+        <img src="https://img.shields.io/github/downloads/etShaw-zh/zotracer/latest/total?color=2E75B6" alt='latest' />
+        <img src='https://readthedocs.org/projects/zotracer/badge/?version=latest' alt='Docs' />
+    </div>
+</p>
 
-[![zotero target version](https://img.shields.io/badge/Zotero-7-green?style=flat-square&logo=zotero&logoColor=CC2936)](https://www.zotero.org)
-[![Using Zotero Plugin Template](https://img.shields.io/badge/Using-Zotero%20Plugin%20Template-blue?style=flat-square&logo=github)](https://github.com/windingwind/zotero-plugin-template)
-[![GitHub Repo stars](https://img.shields.io/github/stars/etShaw-zh/zotracer?label=ZoTracer&style=flat-square)](https://github.com/etShaw-zh/zotracer)
+<p align="center">
+    <a href="../README.md">English</a> | 简体中文
+</p>
+
+## 介绍
 
 ZoTracer 是一个 [Zotero](https://www.zotero.org/) 插件，它可以追踪你的研究活动，记录保存或打开文献等操作，帮助你分析学习习惯并优化研究流程。
-
-[English](../README.md) | [简体中文](./README-zhCN.md)
 
 > [!tip]
 > 👁 关注此仓库以获取最新的更新和修复通知。
@@ -44,4 +56,4 @@ ZoTracer 是一个 [Zotero](https://www.zotero.org/) 插件，它可以追踪你
 
 在 AGPL 下使用此代码。不提供任何保证。遵守你所在地区的法律！
 
-如果你想更改许可，请通过 <wyzlshx@foxmail.com> 与我联系。
+如果你想更改许可，请通过 <et_shaw@126.com> 与我联系。

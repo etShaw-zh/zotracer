@@ -30,7 +30,7 @@ export class UIManager {
         attributes: {
           class: "zotero-tb-button",
           tooltiptext: "ZoTracer Activity Log",
-          image: `chrome://${config.addonRef}/content/icons/favicon.png`
+          image: `chrome://${config.addonRef}/content/icons/favicon.ico`
         },
         namespace: "xul"
       });
