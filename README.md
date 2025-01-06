@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="addon/content/imgs/logo.GIF" width=45%/ alt="">
+    <img src="addon/content/imgs/static_logo.png" width=45%/ alt="">
     <br>
     <div align="center">
         <img src="https://img.shields.io/github/license/etShaw-zh/zotracer?color=2E75B6"  alt="License">
@@ -26,23 +26,19 @@ ZoTracer is a [Zotero](https://www.zotero.org/) plugin that tracks your research
 ## Features
 
 - **Comprehensive Activity Tracking**
-  - Track file operations (opening, saving, importing)
-  - Monitor tab activities (reader, notes)
-  - Log item actions (create, edit, move, tag, delete)
-- **Detailed Context Capture**
+  - Record research activities like reading, writing, and citing
+  - Track literature management operations (adding, editing, organizing)
+  - Monitor tab and reader usage
+- **Structured Data Export for Specific Workflows (Coming Soon)**
+  - Support custom export formats and fields
+  - Seamless integration with other tools and platforms
+  - Facilitate data analysis and visualization
+- **AI-Supported Contextual Annotation (Coming Soon)**
+  - Intelligent identification and extraction of key information
+  - Automatic generation of tag and summary suggestions
+  - Personalized recommendations based on reading history
 
-  - Record active library and collection context
-  - Track selected items during operations
-  - Capture reader state and annotations
-  - Store note relationships and content
-
-- **Rich Metadata Collection**
-  - Document metadata (title, creators, year)
-  - Annotation details (text, comments, colors)
-  - Tab information (type, title, associated data)
-  - Timestamps for all activities
-
-## Quick Start Guide
+## Quick Start
 
 1. Install the plugin through Zotero's Add-on Manager
 2. Your research activities will be automatically tracked

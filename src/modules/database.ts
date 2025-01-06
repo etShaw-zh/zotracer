@@ -61,13 +61,13 @@ export class DatabaseManager {
     ];
 
     // Log the activity data
-    ztoolkit.log("[ZoTracer] Logging activity:", {
-      timestamp,
-      actionType,
-      itemId,
-      extraData,
-      source
-    });
+    // ztoolkit.log("[ZoTracer] Logging activity:", {
+    //   timestamp,
+    //   actionType,
+    //   itemId,
+    //   extraData,
+    //   source
+    // });
     
     await this.db.queryAsync(query, params);
   }

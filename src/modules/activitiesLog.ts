@@ -2,211 +2,164 @@ import { getLocaleID, getString } from "../utils/locale";
 
 import { DatabaseManager } from "./database";
 
-// Common types for better type safety
-export interface ActivityContext {
-  timestamp: string;
-  activeLibraryId: number;
-  activeCollectionId?: number;
-  selectedItems: Array<{
-    id: number;
-    key: string;
-    title: string;
-  }>;
-}
-
-export interface EnrichedData {
-  context: ActivityContext;
-  [key: string]: any;
-}
-
-// Activity logging types
-export type ActivityType = 'file' | 'tab' | 'item';
+export type ActivityType = "file" | "tab" | "item" | "collection" | "library";
 export type ActivityEvent = string;
 export type ActivityId = string | number;
 
 export interface ActivityLogParams {
   event: ActivityEvent;
   ids: Array<ActivityId>;
-  enrichedData: EnrichedData;
   type: ActivityType;
+  [key: string]: any;
 }
 
 export class ActivityLog {
-  /**
-   * Generic activity logger that handles all types of activities
-   */
-  static async logActivity({ event, ids, enrichedData, type }: ActivityLogParams): Promise<void> {
-    const activityId = ids[0]?.toString();
-    if (!activityId) {
-      ztoolkit.log("[ZoTracer] Warning: No activity ID provided", { type, event });
-      return;
-    }
+  private static formatTimestamp(date: Date): string {
+    return date.toLocaleString("zh-CN", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    }).replace(/\//g, "-").replace(",", "");
+  }
 
+  private static async getZoteroItem(activityId: string): Promise<any> {
     try {
-      const eventType = type === 'item' ? 
-        this.determineItemActionType(event, enrichedData) : 
-        `${type}_${event}`;
+      let item = await Zotero.Items.get(activityId);
+      if (!item) {
+        const reader = Zotero.Reader.getByTabID(activityId);
+        if (reader?.itemID) {
+          item = await Zotero.Items.get(reader.itemID);
+        }
+      }
+      return item;
+    } catch (error) {
+      ztoolkit.log("[ZoTracer] Error getting Zotero item:", { activityId, error });
+      return null;
+    }
+  }
 
-      // testing
-      const item = await Zotero.Items.get(activityId);
-      ztoolkit.log("[ZoTracer] Logging activity:", {
-        type,
-        event: eventType,
+  static async logActivity({ event, ids, type, ...extraData }: ActivityLogParams): Promise<void> {
+    try {
+      const activityId = ids[0]?.toString();
+      if (!activityId) {
+        ztoolkit.log("[ZoTracer] Warning: No activity ID provided", { type, event });
+        return;
+      }
+
+      let activityType = `${event}_${type}`;
+      const item = await this.getZoteroItem(activityId);
+      if (activityType === 'close_file') {
+        Zotero.CURRENT_ITEM = null;
+      }
+      if (activityId === "zotero-pane") {
+        Zotero.CURRENT_ITEM = null;
+      }
+      if (activityType === 'select_tab' || activityType === 'open_file' || activityType === 'load_tab') {
+        Zotero.CURRENT_ITEM = item;
+      }
+
+      const itemType = item.itemType;
+      if (itemType) {
+        switch (itemType) {
+          case "annotation": 
+            Zotero.CURRENT_ANNOTATION = item;
+            Zotero.CURRENT_ITEM = await this.getZoteroItem(Zotero.CURRENT_ANNOTATION._parentItemID);
+            // eslint-disable-next-line no-case-declarations
+            const isAnnotationEvent = type === 'item' && Zotero.CURRENT_ANNOTATION;
+            if (isAnnotationEvent) {
+              switch (event) {
+                case 'add':
+                  activityType = `${Zotero.CURRENT_ANNOTATION._annotationType}_annotation`;
+                  break;
+                case 'modify':
+                  activityType = 'modify_annotation';
+                  break;
+                case 'delete':
+                  activityType = 'delete_annotation';
+                  break;
+              }
+            }
+            break;
+          case "attachment":
+          case "journalArticle":
+            Zotero.CURRENT_ITEM = item;
+            break;
+          case "note": 
+            Zotero.CURRENT_NOTE = item;
+            Zotero.CURRENT_ITEM = await this.getZoteroItem(Zotero.CURRENT_NOTE._parentID);
+            // eslint-disable-next-line no-case-declarations
+            const isNoteEvent = type === 'item' && Zotero.CURRENT_NOTE;
+            if (isNoteEvent) {
+              switch (event) {
+                case 'add':
+                  activityType = 'add_note';
+                  break;
+                case 'modify':
+                  activityType = 'modify_note';
+                  break;
+                case 'trash':
+                  activityType = 'trash_note';
+                  break;
+                case 'delete':
+                  activityType = 'delete_note';
+                  break;
+              }
+            }
+            break;
+          default: 
+            break;
+        }
+      }
+
+      const activityData = {
         activityId,
-        item,
-        annotationText: item._annotationText,
-        annotationComment: item._annotationComment,
-        tags: item._tags,
-        annotations: item._annotations,
-        annotationColor: item._annotationColor,
-        timestamp: new Date().toISOString()
-      });
+        activityType,
+        event,
+        type,
+        itemType,
+        // articleItem: Zotero.CURRENT_ITEM,
+        articleId: Zotero.CURRENT_ITEM?.id,
+        articleKey: Zotero.CURRENT_ITEM?.key,
+        articleAnnotations: Zotero.CURRENT_ITEM?.annotations,
+        articleTags: Zotero.CURRENT_ITEM?._tags,
+        collectionId: Zotero.CURRENT_ITEM?.id,
+        collectionKey: Zotero.CURRENT_ITEM?.key,
+        libraryId: Zotero.CURRENT_ITEM?.id,
+        libraryKey: Zotero.CURRENT_ITEM?.key,
+        // annotationItem: Zotero.CURRENT_ANNOTATION,
+        annotationText: Zotero.CURRENT_ANNOTATION?._annotationText,
+        annotationComment: Zotero.CURRENT_ANNOTATION?._annotationComment,
+        annotationTags: Zotero.CURRENT_ANNOTATION?._tags,
+        annotationColor: Zotero.CURRENT_ANNOTATION?._annotationColor,
+        // noteItem: Zotero.CURRENT_NOTE,
+        noteText: Zotero.CURRENT_NOTE?._noteText,
+        timestamp: this.formatTimestamp(new Date()),
+        ...extraData
+      };
+
+      ztoolkit.log("[ZoTracer] Logging activity:", activityData);
 
       await DatabaseManager.getInstance().logActivity(
-        eventType,
+        activityType,
         activityId,
-        enrichedData,
-        type
+        activityData,
+        itemType
       );
+      Zotero.CURRENT_ANNOTATION = null;
+      Zotero.CURRENT_NOTE = null;
     } catch (error) {
       ztoolkit.log("[ZoTracer] Error logging activity:", { 
         error,
         type,
         event,
-        activityId,
+        ids,
         errorMessage: error.message,
         stack: error.stack
       });
     }
-  }
-
-  /**
-   * Specialized activity loggers for different types
-   */
-  static logFileActivity(event: ActivityEvent, ids: Array<ActivityId>, enrichedData: EnrichedData) {
-    return this.logActivity({ event, ids, enrichedData, type: 'file' });
-  }
-
-  static logTabActivity(event: ActivityEvent, ids: Array<ActivityId>, enrichedData: EnrichedData) {
-    return this.logActivity({ event, ids, enrichedData, type: 'tab' });
-  }
-
-  static logItemActivity(event: ActivityEvent, ids: Array<ActivityId>, enrichedData: EnrichedData) {
-    return this.logActivity({ event, ids, enrichedData, type: 'item' });
-  }
-
-  static determineItemActionType(event: string, extraData: any): string {
-    // Handle item creation events
-    if (event === 'add') {
-      if (extraData.method === 'file') return 'item_import_file';
-      if (extraData.method === 'url') return 'item_import_url';
-      return 'item_create';
-    }
-
-    // Handle item modification events
-    if (event === 'modify') {
-      if (extraData.collections) return 'item_move';
-      if (extraData.tags) return 'item_tag';
-      return 'item_edit';
-    }
-
-    // Handle item deletion events
-    if (event === 'delete') {
-      return extraData.trash ? 'item_trash' : 'item_delete';
-    }
-
-    // Handle item trash events
-    if (event === 'trash') {
-      return extraData.trashed ? 'item_trash' : 'item_restore';
-    }
-
-    return `item_${event}`;
-  }
-
-  static async enrichActivityData(event: string, type: string, ids: Array<string | number>, extraData: any = {}): Promise<EnrichedData> {
-    const timestamp = new Date().toISOString();
-    const activePane = Zotero.getActiveZoteroPane();
-    const activeLibraryId = activePane.getSelectedLibraryID();
-    const activeCollectionId = activePane.getSelectedCollection()?.id;
-
-    // Get selected items information
-    const selectedItems = activePane.getSelectedItems().map(item => ({
-      id: item.id,
-      key: item.key,
-      libraryId: item.libraryID,
-      title: item.getField('title'),
-    }));
-
-    ztoolkit.log("[ZoTracer] Enriching activity data:", selectedItems);
-
-    const context: ActivityContext = {
-      timestamp,
-      activeLibraryId,
-      activeCollectionId,
-      selectedItems
-    };
-
-    let enrichedData: EnrichedData = {
-      context,
-      ...extraData
-    };
-
-    // Enrich tab-specific information
-    if (type === 'tab') {
-      enrichedData = {
-        ...enrichedData,
-        ...this.enrichTabInfo(extraData)
-      };
-    }
-
-    return enrichedData;
-  }
-
-  static async enrichTabInfo(tabInfo: any) {
-    const enriched: any = {
-        id: tabInfo.id,
-        type: tabInfo.type,
-        title: tabInfo.title,
-        data: tabInfo.data
-      };
-      if (tabInfo.type === "reader" && tabInfo.data?.itemID) {
-        const item = await Zotero.Items.getAsync(tabInfo.data.itemID);
-        if (item) {
-          enriched.item = {
-            id: item.id,
-            key: item.key,
-            title: item.getField('title'),
-            creators: item.getCreators(),
-            year: item.getField('year'),
-            publicationTitle: item.getField('publicationTitle'),
-            dateModified: item.dateModified
-          };
-    
-          if (tabInfo.data?.annotations) {
-            enriched.annotations = (await Promise.all(
-              tabInfo.data.annotations.map(async (annotationId: number) => {
-                try {
-                  const annotation = await Zotero.Items.getAsync(annotationId);
-                  return annotation && annotation.isAnnotation() ? {
-                    id: annotation.id,
-                    key: annotation.key,
-                    type: annotation.annotationType,
-                    text: annotation.annotationText,
-                    comment: annotation.annotationComment,
-                    color: annotation.annotationColor,
-                    pageLabel: annotation.annotationPageLabel,
-                    position: annotation.annotationPosition,
-                    dateModified: annotation.dateModified
-                  } : null;
-                } catch (error) {
-                  ztoolkit.log("[ZoTracer] Error getting annotation:", { error, annotationId });
-                  return null;
-                }
-              })
-            )).filter(a => a !== null);
-          }
-        }
-      }
-      return enriched;
   }
 }

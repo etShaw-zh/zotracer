@@ -4,7 +4,7 @@ import { createZToolkit } from "./utils/ztoolkit";
 import { registerPrefsScripts } from "./modules/preferenceScript";
 import { DatabaseManager } from "./modules/database";
 import { UIManager } from "./modules/ui";
-import { ActivityLog } from "./modules/activitiesLog";
+import { ActivityLog, ActivityType } from "./modules/activitiesLog";
 
 async function onStartup() {
   await Promise.all([
@@ -28,6 +28,10 @@ async function onStartup() {
   await Promise.all(
     Zotero.getMainWindows().map((win) => onMainWindowLoad(win)),
   );
+
+  Zotero.CURRENT_ITEM = null;
+  Zotero.CURRENT_ANNOTATION = null;
+  Zotero.CURRENT_NOTE = null;
 }
 
 async function onMainWindowLoad(win: Window): Promise<void> {
@@ -78,26 +82,12 @@ function onShutdown(): void {
 
 async function onNotify(
   event: string,
-  type: string,
+  type: ActivityType,
   ids: Array<string | number>,
   extraData?: { [key: string]: any },
 ) {
   try {
-    const enrichedData = await ActivityLog.enrichActivityData(event, type, ids, extraData);
-
-    switch (type) {
-      case 'file':
-        await ActivityLog.logFileActivity(event, ids, enrichedData);
-        break;
-      case 'tab':
-        await ActivityLog.logTabActivity(event, ids, enrichedData);
-        break;
-      case 'item':
-        await ActivityLog.logItemActivity(event, ids, enrichedData);
-        break;
-      default:
-        ztoolkit.log("[ZoTracer] Unhandled activity type:", { type, event });
-    }
+    await ActivityLog.logActivity({ event, ids, type, extraData });
   } catch (error) {
     ztoolkit.log("[ZoTracer] Error in activity notification:", { error });
   }
@@ -107,7 +97,7 @@ function registerActivityNotifier() {
   const callback = {
     notify: async (
       event: string,
-      type: string,
+      type: ActivityType,
       ids: number[] | string[],
       extraData: { [key: string]: any },
     ) => {
