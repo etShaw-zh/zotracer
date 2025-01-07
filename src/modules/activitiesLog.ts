@@ -160,13 +160,14 @@ export class ActivityLog {
       this.cleanupCurrentItemWhenSave();
 
     } catch (error) {
+      const err = error as Error;
       ztoolkit.log("[ZoTracer] Error logging activity:", { 
-        error,
+        error: err,
         type,
         event,
         ids,
-        errorMessage: error.message,
-        stack: error.stack
+        errorMessage: err.message,
+        stack: err.stack
       });
     }
   }

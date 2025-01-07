@@ -1,4 +1,5 @@
 import { getLocaleID, getString } from "../utils/locale";
+import { ActivityType } from "./activitiesLog";
 
 function example(
   target: any,
@@ -32,7 +33,10 @@ export class BasicExampleFactory {
           this.unregisterNotifier(notifierID);
           return;
         }
-        addon.hooks.onNotify(event, type, ids, extraData);
+        // Cast type to ActivityType since we know it's one of the supported types
+        if (type === "item" || type === "file" || type === "tab") {
+          addon.hooks.onNotify(event, type as ActivityType, ids, extraData);
+        }
       },
     };
 

@@ -97,20 +97,22 @@ async function onNotify(
   }
 }
 
+type NotifierType = "item" | "file" | "tab" | "collection" | "search" | "share" | "share-items" | "tag" | "group" | "relation" | "feed" | "feedItem";
+
+type Notify = (event: string, type: string, ids: (string | number)[], extraData: any) => void;
+
 function registerActivityNotifier() {
   const callback = {
-    notify: async (
-      event: string,
-      type: ActivityType,
-      ids: number[] | string[],
-      extraData: { [key: string]: any },
-    ) => {
+    notify(event: string, type: string, ids: (string | number)[], extraData: any) {
       if (!addon?.data.alive) {
         Zotero.Notifier.unregisterObserver(notifierID);
         return;
       }
-      await onNotify(event, type, ids, extraData);
-    },
+      // Only call onNotify for supported activity types
+      if (type === "item" || type === "file" || type === "tab") {
+        onNotify(event, type as ActivityType, ids, extraData);
+      }
+    }
   };
 
   const notifierID = Zotero.Notifier.registerObserver(callback, ["item", "file", "tab"]);
@@ -135,11 +137,22 @@ async function onPrefsEvent(type: string, data: { [key: string]: any }) {
   }
 }
 
+function onShortcuts(action: string) {
+  // Handle shortcuts
+}
+
+function onDialogEvents(type: string) {
+  // Handle dialog events
+}
+
 // Export all hooks
 export default {
   onStartup,
   onShutdown,
   onMainWindowLoad,
   onMainWindowUnload,
-  onPrefsEvent
+  onPrefsEvent,
+  onNotify,
+  onShortcuts,
+  onDialogEvents
 };
