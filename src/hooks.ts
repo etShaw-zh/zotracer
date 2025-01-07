@@ -13,23 +13,17 @@ async function onStartup() {
     Zotero.uiReadyPromise,
   ]);
 
-  // Initialize locale
   initLocale();
-
   registerPrefs();
-
-  // Initialize database
   await DatabaseManager.getInstance().init();
-
-  // Register notifier for activity logging
   registerActivityNotifier();
-
-  // Initialize UI for all windows
   await Promise.all(
     Zotero.getMainWindows().map((win) => onMainWindowLoad(win)),
   );
 
-  Zotero.CURRENT_ITEM = null;
+  Zotero.CURRENT_COLLECTION = null;
+  Zotero.CURRENT_ARTICLE = null;
+  Zotero.CURRENT_ATTACHMENT = null;
   Zotero.CURRENT_ANNOTATION = null;
   Zotero.CURRENT_NOTE = null;
 }
@@ -68,7 +62,7 @@ function onMainWindowUnload(win: Window): Promise<void> {
 function onShutdown(): void {
   // Cleanup database
   DatabaseManager.getInstance().cleanup();
-  
+
   // Cleanup UI
   UIManager.getInstance().unregisterUI();
   

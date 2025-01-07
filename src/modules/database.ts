@@ -1,5 +1,3 @@
-import { config } from "../../package.json";
-
 export class DatabaseManager {
   private static instance: DatabaseManager;
   private db: any;
@@ -29,10 +27,31 @@ export class DatabaseManager {
       `CREATE TABLE IF NOT EXISTS user_activities (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         timestamp TEXT NOT NULL,
-        action_type TEXT NOT NULL,
-        item_id TEXT,
-        extra_data TEXT,
-        source TEXT
+        activityId TEXT NOT NULL,
+        activityType TEXT NOT NULL,
+        event TEXT NOT NULL,
+        type TEXT NOT NULL,
+        itemType TEXT NOT NULL,
+        libraryId INTEGER,
+        collectionIds TEXT,
+        articleId INTEGER,
+        articleKey TEXT,
+        articleTitle TEXT,
+        articleAnnotations TEXT,
+        articleTags TEXT,
+        attachmentId INTEGER,
+        attachmentKey TEXT,
+        attachmentPath TEXT,
+        annotationId INTEGER,
+        annotationKey TEXT,
+        annotationText TEXT,
+        annotationComment TEXT,
+        annotationTags TEXT,
+        annotationColor TEXT,
+        noteId INTEGER,
+        noteKey TEXT,
+        noteText TEXT,
+        extraData TEXT
       )`
     ];
 
@@ -41,35 +60,64 @@ export class DatabaseManager {
     }
   }
 
-  public async logActivity(
-    actionType: string,
-    itemId?: string,
-    extraData?: any,
-    source?: string
-  ) {
-    const timestamp = new Date().toISOString();
-    const query = `INSERT INTO user_activities 
-      (timestamp, action_type, item_id, extra_data, source) 
-      VALUES (?, ?, ?, ?, ?)`;
+  private static formatTimestamp(date: Date): string {
+    return date.toLocaleString("zh-CN", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    }).replace(/\//g, "-").replace(",", "");
+  }
+
+  public async logActivity(activityData: any) {
+    const timestamp = DatabaseManager.formatTimestamp(new Date());
+    const query = `INSERT INTO user_activities (
+      timestamp, activityId, activityType, event, type, itemType,
+      libraryId, collectionIds, articleId, articleKey, articleTitle,
+      articleAnnotations, articleTags, attachmentId, attachmentKey,
+      attachmentPath, annotationId, annotationKey, annotationText,
+      annotationComment, annotationTags, annotationColor, noteId,
+      noteKey, noteText, extraData
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
     
     const params = [
       timestamp,
-      actionType,
-      itemId || null,
-      extraData ? JSON.stringify(extraData) : null,
-      source || null
+      activityData.activityId || null,
+      activityData.activityType || null,
+      activityData.event || null,
+      activityData.type || null,
+      activityData.itemType || null,
+      activityData.libraryId || null,
+      activityData.collectionIds ? JSON.stringify(activityData.collectionIds) : null,
+      activityData.articleId || null,
+      activityData.articleKey || null,
+      activityData.articleTitle || null,
+      activityData.articleAnnotations ? JSON.stringify(activityData.articleAnnotations) : null,
+      activityData.articleTags ? JSON.stringify(activityData.articleTags) : null,
+      activityData.attachmentId || null,
+      activityData.attachmentKey || null,
+      activityData.attachmentPath || null,
+      activityData.annotationId || null,
+      activityData.annotationKey || null,
+      activityData.annotationText || null,
+      activityData.annotationComment || null,
+      activityData.annotationTags ? JSON.stringify(activityData.annotationTags) : null,
+      activityData.annotationColor || null,
+      activityData.noteId || null,
+      activityData.noteKey || null,
+      activityData.noteText || null,
+      activityData.extraData ? JSON.stringify(activityData.extraData) : null
     ];
 
-    // Log the activity data
-    // ztoolkit.log("[ZoTracer] Logging activity:", {
-    //   timestamp,
-    //   actionType,
-    //   itemId,
-    //   extraData,
-    //   source
-    // });
-    
-    await this.db.queryAsync(query, params);
+    try {
+      await this.db.queryAsync(query, params);
+    } catch (error) {
+      ztoolkit.log("[ZoTracer] Error logging activity:", { error, activityData });
+      throw error;
+    }
   }
 
   public async getActivities(

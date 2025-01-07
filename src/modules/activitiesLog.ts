@@ -1,5 +1,3 @@
-import { getLocaleID, getString } from "../utils/locale";
-
 import { DatabaseManager } from "./database";
 
 export type ActivityType = "file" | "tab" | "item" | "collection" | "library";
@@ -14,16 +12,16 @@ export interface ActivityLogParams {
 }
 
 export class ActivityLog {
-  private static formatTimestamp(date: Date): string {
-    return date.toLocaleString("zh-CN", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hour12: false,
-    }).replace(/\//g, "-").replace(",", "");
+  private static async cleanupCurrentItemWhenClose() {
+    Zotero.CURRENT_ARTICLE = null;
+    Zotero.CURRENT_ATTACHMENT = null;
+    Zotero.CURRENT_ANNOTATION = null;
+    Zotero.CURRENT_NOTE = null;
+  }
+
+  private static async cleanupCurrentItemWhenSave() {
+    Zotero.CURRENT_ANNOTATION = null;
+    Zotero.CURRENT_NOTE = null;
   }
 
   private static async getZoteroItem(activityId: string): Promise<any> {
@@ -52,22 +50,20 @@ export class ActivityLog {
 
       let activityType = `${event}_${type}`;
       const item = await this.getZoteroItem(activityId);
-      if (activityType === 'close_file') {
-        Zotero.CURRENT_ITEM = null;
-      }
-      if (activityId === "zotero-pane") {
-        Zotero.CURRENT_ITEM = null;
-      }
+      if (activityType === 'close_file') this.cleanupCurrentItemWhenClose();
+      if (activityId === "zotero-pane") this.cleanupCurrentItemWhenClose();
       if (activityType === 'select_tab' || activityType === 'open_file' || activityType === 'load_tab') {
-        Zotero.CURRENT_ITEM = item;
+        Zotero.CURRENT_ATTACHMENT = item;
+        Zotero.CURRENT_ARTICLE = await this.getZoteroItem(Zotero.CURRENT_ATTACHMENT._parentID);
       }
 
-      const itemType = item.itemType;
+      let itemType = item.itemType;
       if (itemType) {
         switch (itemType) {
           case "annotation": 
             Zotero.CURRENT_ANNOTATION = item;
-            Zotero.CURRENT_ITEM = await this.getZoteroItem(Zotero.CURRENT_ANNOTATION._parentItemID);
+            Zotero.CURRENT_ATTACHMENT = await this.getZoteroItem(Zotero.CURRENT_ANNOTATION._parentID);
+            Zotero.CURRENT_ARTICLE = await this.getZoteroItem(Zotero.CURRENT_ATTACHMENT._parentID);
             // eslint-disable-next-line no-case-declarations
             const isAnnotationEvent = type === 'item' && Zotero.CURRENT_ANNOTATION;
             if (isAnnotationEvent) {
@@ -85,12 +81,15 @@ export class ActivityLog {
             }
             break;
           case "attachment":
+            Zotero.CURRENT_ATTACHMENT = item;
+            Zotero.CURRENT_ARTICLE = await this.getZoteroItem(Zotero.CURRENT_ATTACHMENT._parentID);
+            break;
           case "journalArticle":
-            Zotero.CURRENT_ITEM = item;
+            Zotero.CURRENT_ARTICLE = item;
             break;
           case "note": 
             Zotero.CURRENT_NOTE = item;
-            Zotero.CURRENT_ITEM = await this.getZoteroItem(Zotero.CURRENT_NOTE._parentID);
+            Zotero.CURRENT_ARTICLE = await this.getZoteroItem(Zotero.CURRENT_NOTE._parentID);
             // eslint-disable-next-line no-case-declarations
             const isNoteEvent = type === 'item' && Zotero.CURRENT_NOTE;
             if (isNoteEvent) {
@@ -115,42 +114,51 @@ export class ActivityLog {
         }
       }
 
+      if (!itemType) itemType = type;
       const activityData = {
         activityId,
         activityType,
         event,
         type,
         itemType,
-        // articleItem: Zotero.CURRENT_ITEM,
-        articleId: Zotero.CURRENT_ITEM?.id,
-        articleKey: Zotero.CURRENT_ITEM?.key,
-        articleAnnotations: Zotero.CURRENT_ITEM?.annotations,
-        articleTags: Zotero.CURRENT_ITEM?._tags,
-        collectionId: Zotero.CURRENT_ITEM?.id,
-        collectionKey: Zotero.CURRENT_ITEM?.key,
-        libraryId: Zotero.CURRENT_ITEM?.id,
-        libraryKey: Zotero.CURRENT_ITEM?.key,
-        // annotationItem: Zotero.CURRENT_ANNOTATION,
+        libraryId: Zotero.CURRENT_ARTICLE?._libraryID,
+        collectionIds: Zotero.CURRENT_ARTICLE?._collections,
+        articleId: Zotero.CURRENT_ARTICLE?.id,
+        articleKey: Zotero.CURRENT_ARTICLE?.key,
+        articleTitle: Zotero.CURRENT_ARTICLE?._displayTitle,
+        articleAnnotations: Zotero.CURRENT_ARTICLE?.annotations,
+        articleTags: Zotero.CURRENT_ARTICLE?._tags,
+        attachmentId: Zotero.CURRENT_ATTACHMENT?.id,
+        attachmentKey: Zotero.CURRENT_ATTACHMENT?.key,
+        attachmentPath: Zotero.CURRENT_ATTACHMENT?._attachmentPath,
+        annotationId: Zotero.CURRENT_ANNOTATION?.id,
+        annotationKey: Zotero.CURRENT_ANNOTATION?.key,
         annotationText: Zotero.CURRENT_ANNOTATION?._annotationText,
         annotationComment: Zotero.CURRENT_ANNOTATION?._annotationComment,
         annotationTags: Zotero.CURRENT_ANNOTATION?._tags,
         annotationColor: Zotero.CURRENT_ANNOTATION?._annotationColor,
-        // noteItem: Zotero.CURRENT_NOTE,
+        noteId: Zotero.CURRENT_NOTE?.id,
+        noteKey: Zotero.CURRENT_NOTE?.key,
         noteText: Zotero.CURRENT_NOTE?._noteText,
-        timestamp: this.formatTimestamp(new Date()),
-        ...extraData
+        extraData: {
+          articleItem: Zotero.CURRENT_ARTICLE,
+          attachmentItem: Zotero.CURRENT_ATTACHMENT,
+          annotationItem: Zotero.CURRENT_ANNOTATION,
+          noteItem: Zotero.CURRENT_NOTE,
+        }
       };
 
+      ztoolkit.log("[ZoTracer] Logging zotero item:", Zotero.CURRENT_ARTICLE);
+      ztoolkit.log("[ZoTracer] Logging zotero attachment:", Zotero.CURRENT_ATTACHMENT);
+      ztoolkit.log("[ZoTracer] Logging zotero annotation:", Zotero.CURRENT_ANNOTATION);
+      ztoolkit.log("[ZoTracer] Logging zotero note:", Zotero.CURRENT_NOTE);
       ztoolkit.log("[ZoTracer] Logging activity:", activityData);
 
       await DatabaseManager.getInstance().logActivity(
-        activityType,
-        activityId,
-        activityData,
-        itemType
+        activityData
       );
-      Zotero.CURRENT_ANNOTATION = null;
-      Zotero.CURRENT_NOTE = null;
+      this.cleanupCurrentItemWhenSave();
+
     } catch (error) {
       ztoolkit.log("[ZoTracer] Error logging activity:", { 
         error,
