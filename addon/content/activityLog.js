@@ -22,34 +22,51 @@ const ZoTracerActivityLog = {
             this.customRange = document.getElementById('custom-range');
             this.dateFrom = document.getElementById('date-from');
             this.dateTo = document.getElementById('date-to');
+            this.activeFilters = document.getElementById('active-filters');
+            this.colorFilters = document.getElementById('color-filters');
+            this.tagFilters = document.getElementById('tag-filters');
             
-            // Verify all required elements are present
-            const requiredElements = {
-                filterType: this.filterType,
-                activityGrid: this.activityGrid,
-                activityList: this.activityList,
-                refreshBtn: this.refreshBtn,
-                timeRange: this.timeRange,
-                customRange: this.customRange,
-                dateFrom: this.dateFrom,
-                dateTo: this.dateTo
-            };
-
-            for (const [name, element] of Object.entries(requiredElements)) {
-                if (!element) {
-                    console.error(`[ZoTracer] Required element not found: ${name}`);
-                    return;
-                }
-            }
+            // Initialize filter states
+            this.activeTagFilters = new Set();
+            this.activeColorFilters = new Set();
             
-            // Set default dates for custom range
-            const today = new Date();
-            this.dateTo.value = today.toISOString().split('T')[0];
-            const lastMonth = new Date(today);
-            lastMonth.setMonth(today.getMonth() - 1);
-            this.dateFrom.value = lastMonth.toISOString().split('T')[0];
+            // Add event listeners for tag filters
+            document.querySelectorAll('.tag-filter').forEach(button => {
+                button.addEventListener('click', () => {
+                    const tag = button.dataset.tag;
+                    button.classList.toggle('active');
+                    
+                    if (this.activeTagFilters.has(tag)) {
+                        this.activeTagFilters.delete(tag);
+                        this.removeActiveFilter(tag);
+                    } else {
+                        this.activeTagFilters.add(tag);
+                        this.addActiveFilter(tag);
+                    }
+                    
+                    this.updateActivityLog();
+                });
+            });
             
-            // Add event listeners
+            // Add event listeners for color filters
+            document.querySelectorAll('.color-filter').forEach(button => {
+                button.addEventListener('click', () => {
+                    const color = button.dataset.color;
+                    button.classList.toggle('active');
+                    
+                    if (this.activeColorFilters.has(color)) {
+                        this.activeColorFilters.delete(color);
+                        this.removeActiveFilter(color);
+                    } else {
+                        this.activeColorFilters.add(color);
+                        this.addActiveFilter(color, true);
+                    }
+                    
+                    this.updateActivityLog();
+                });
+            });
+            
+            // Add event listeners for other controls
             this.filterType.addEventListener('change', () => this.updateActivityLog());
             this.refreshBtn.addEventListener('click', () => {
                 console.log("[ZoTracer] Refresh button clicked");
@@ -63,6 +80,47 @@ const ZoTracerActivityLog = {
             await this.updateActivityLog(this.filterType.value);
         } catch (error) {
             console.error("[ZoTracer] Error initializing activity log:", error);
+        }
+    },
+
+    addActiveFilter: function(value, isColor = false) {
+        const filter = document.createElement('div');
+        filter.className = 'active-filter';
+        filter.dataset.value = value;
+        
+        if (isColor) {
+            const colorDot = document.createElement('span');
+            colorDot.className = 'color-dot';
+            colorDot.style.backgroundColor = value;
+            filter.appendChild(colorDot);
+        } else {
+            filter.textContent = value;
+        }
+        
+        const remove = document.createElement('span');
+        remove.className = 'remove';
+        remove.textContent = '×';
+        remove.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (isColor) {
+                this.activeColorFilters.delete(value);
+                document.querySelector(`.color-filter[data-color="${value}"]`).classList.remove('active');
+            } else {
+                this.activeTagFilters.delete(value);
+                document.querySelector(`.tag-filter[data-tag="${value}"]`).classList.remove('active');
+            }
+            filter.remove();
+            this.updateActivityLog();
+        });
+        
+        filter.appendChild(remove);
+        this.activeFilters.appendChild(filter);
+    },
+
+    removeActiveFilter: function(value) {
+        const filter = this.activeFilters.querySelector(`.active-filter[data-value="${value}"]`);
+        if (filter) {
+            filter.remove();
         }
     },
 
@@ -87,16 +145,32 @@ const ZoTracerActivityLog = {
             this.activities = await dbManager.getActivities();
             console.log("[ZoTracer] Retrieved activities:", this.activities.length);
             
+            // Extract unique tags and colors from activities
+            this.updateFilterOptions(this.activities);
+            
             // Use the current filter type if none provided
             const filterType = type || this.filterType.value;
             console.log("[ZoTracer] Filtering by type:", filterType);
             
-            // Filter activities by date range and type
+            // Filter activities
             const filteredActivities = this.activities.filter(activity => {
                 const activityDate = new Date(activity.timestamp);
                 const matchesDate = activityDate >= startDate && activityDate <= endDate;
-                return filterType === 'all' ? matchesDate : matchesDate && activity.activityType === filterType;
+                const matchesType = filterType === 'all' ? true : activity.activityType === filterType;
+                
+                // Check tag filters
+                const matchesTags = this.activeTagFilters.size === 0 || Array.from(this.activeTagFilters).some(tag => {
+                    return (activity.annotationTags && activity.annotationTags.includes(tag));
+                });
+                
+                // Check color filters
+                const matchesColors = this.activeColorFilters.size === 0 || Array.from(this.activeColorFilters).some(color => {
+                    return activity.annotationColor === color;
+                });
+                
+                return matchesDate && matchesType && matchesTags && matchesColors;
             });
+            
             console.log("[ZoTracer] Filtered activities:", filteredActivities.length);
 
             // Sort activities by timestamp in descending order
@@ -107,7 +181,6 @@ const ZoTracerActivityLog = {
             this.displayActivities(filteredActivities);
         } catch (error) {
             console.error("[ZoTracer] Error updating activity log:", error);
-            // Show error to user
             if (this.activityList) {
                 this.activityList.innerHTML = `
                     <div class="empty-message" style="color: #cf222e;">
@@ -337,9 +410,9 @@ const ZoTracerActivityLog = {
         let description = actionMap[activity.activityType] || activity.activityType;
         
         // Add article title if available
-        if (activity.articleTitle) {
-            description += `: "${activity.articleTitle}"`;
-        }
+        // if (activity.articleTitle) {
+        //     description += `: "${activity.articleTitle}"`;
+        // }
         
         // Add annotation details for annotation types
         if (activity.activityType.includes('annotation')) {
@@ -349,9 +422,9 @@ const ZoTracerActivityLog = {
             if (activity.annotationComment) {
                 description += ` (Comment: ${activity.annotationComment})`;
             }
-            if (activity.annotationColor) {
-                description += ` <span class="color-dot" style="background-color: ${activity.annotationColor}"></span>`;
-            }
+            // if (activity.annotationColor) {
+            //     description += ` <span class="color-dot" style="background-color: ${activity.annotationColor}"></span>`;
+            // }
         }
 
         // Add tags if present
@@ -434,7 +507,89 @@ const ZoTracerActivityLog = {
         return date1.getFullYear() === date2.getFullYear() &&
                date1.getMonth() === date2.getMonth() &&
                date1.getDate() === date2.getDate();
-    }
+    },
+
+    updateFilterOptions: function(activities) {
+        // Extract unique tags and colors from activities
+        const tagFrequency = new Map(); // Map to store tag frequencies
+        const colors = new Set();
+
+        activities.forEach(activity => {
+            // Extract color from annotation
+            if (activity.annotationColor) {
+                colors.add(activity.annotationColor);
+            }
+
+            // Extract tags from annotationTags
+            if (activity.annotationTags) {
+                try {
+                    const tags = JSON.parse(activity.annotationTags);
+                    tags.forEach(tagObj => {
+                        if (tagObj.tag) {
+                            tagFrequency.set(tagObj.tag, (tagFrequency.get(tagObj.tag) || 0) + 1);
+                        }
+                    });
+                } catch (e) {
+                    console.error("[ZoTracer] Error parsing annotationTags:", e);
+                }
+            }
+        });
+
+        // Get top 10 most frequent tags
+        const topTags = Array.from(tagFrequency.entries())
+            .sort((a, b) => b[1] - a[1]) // Sort by frequency in descending order
+            .slice(0, 15) // Take only top 10
+            .map(entry => entry[0]); // Get just the tags
+
+        // Update color filters
+        this.colorFilters.innerHTML = '';
+        colors.forEach(color => {
+            const button = document.createElement('button');
+            button.className = 'color-filter';
+            button.dataset.color = color;
+            button.style.backgroundColor = color;
+            button.title = color;
+            
+            // Add click event listener
+            button.addEventListener('click', () => {
+                button.classList.toggle('active');
+                if (this.activeColorFilters.has(color)) {
+                    this.activeColorFilters.delete(color);
+                    this.removeActiveFilter(color);
+                } else {
+                    this.activeColorFilters.add(color);
+                    this.addActiveFilter(color, true);
+                }
+                this.updateActivityLog();
+            });
+            
+            this.colorFilters.appendChild(button);
+        });
+
+        // Update tag filters with top 10 tags
+        this.tagFilters.innerHTML = '';
+        topTags.forEach(tag => {
+            const button = document.createElement('button');
+            button.className = 'tag-filter';
+            button.dataset.tag = tag;
+            button.textContent = `${tag} (${tagFrequency.get(tag)})`;  // Show frequency count
+            
+            // Add click event listener
+            button.addEventListener('click', () => {
+                button.classList.toggle('active');
+                if (this.activeTagFilters.has(tag)) {
+                    this.activeTagFilters.delete(tag);
+                    this.removeActiveFilter(tag);
+                } else {
+                    this.activeTagFilters.add(tag);
+                    this.addActiveFilter(tag);
+                }
+                this.updateActivityLog();
+            });
+            
+            this.tagFilters.appendChild(button);
+        });
+    },
 };
 
 // Initialize when window loads

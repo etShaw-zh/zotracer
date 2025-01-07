@@ -60,6 +60,16 @@
                     Refresh
                 </html:button>
             </html:div>
+            <html:div class="search-filter">
+                <html:div class="filter-group">
+                    <html:label>Quick Filters</html:label>
+                    <html:div class="tag-filters">
+                        <html:div id="color-filters" class="color-filters"></html:div>    
+                        <html:div id="tag-filters" class="tags-section"></html:div>
+                        <html:div id="active-filters" class="active-filters"></html:div>
+                    </html:div>
+                </html:div>
+            </html:div>
         </html:div>
 
         <html:div class="main-content">
@@ -109,23 +119,21 @@
             padding: 20px;
             height: 100%;
             box-sizing: border-box;
-        }
-
-        .main-content {
-            padding: 20px;
-            overflow-y: auto;
-        }
-
-        h2, h3 {
-            margin: 0 0 16px 0;
-            font-weight: 600;
-            color: #24292e;
+            display: flex;
+            flex-direction: column;
         }
 
         .filters {
+            flex-grow: 1;
             display: flex;
             flex-direction: column;
             gap: 16px;
+        }
+
+        .search-filter {
+            margin-top: auto;
+            padding-top: 16px;
+            border-top: 1px solid #e1e4e8;
         }
 
         .filter-group {
@@ -189,6 +197,7 @@
         }
 
         .activity-overview {
+            flex-shrink: 0;
             background-color: #ffffff;
             border: 1px solid #e1e4e8;
             border-radius: 6px;
@@ -234,11 +243,35 @@
             border-radius: 2px;
         }
 
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
         .activity-details {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
             background-color: #ffffff;
             border: 1px solid #e1e4e8;
             border-radius: 6px;
             padding: 20px;
+            margin-bottom: 20px;
+            min-height: 0;
+        }
+
+        .activity-details h2 {
+            flex-shrink: 0;
+            margin-top: 0;
+            margin-bottom: 16px;
+        }
+
+        .activity-list {
+            flex-grow: 1;
+            overflow-y: auto;
+            min-height: 0;
         }
 
         .article-group {
@@ -354,6 +387,104 @@
 
         .tooltip.visible {
             opacity: 1;
+        }
+
+        .tag-filters {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .tags-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .tag-filter {
+            background: #f6f8fa;
+            border: 1px solid #e1e4e8;
+            border-radius: 12px;
+            padding: 4px 10px;
+            font-size: 12px;
+            color: #24292e;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tag-filter:hover {
+            background: #f3f4f6;
+            border-color: #d1d5da;
+        }
+
+        .tag-filter.active {
+            background: #0366d6;
+            color: white;
+            border-color: #0366d6;
+        }
+
+        .color-filters {
+            display: flex;
+            gap: 8px;
+            padding: 4px 0;
+        }
+
+        .color-filter {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            padding: 0;
+            transition: all 0.2s;
+        }
+
+        .color-filter:hover {
+            transform: scale(1.1);
+        }
+
+        .color-filter.active {
+            border-color: #24292e;
+            transform: scale(1.1);
+        }
+
+        .active-filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            min-height: 28px;
+            padding: 4px 0;
+        }
+
+        .active-filter {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: #f6f8fa;
+            border: 1px solid #e1e4e8;
+            border-radius: 12px;
+            padding: 4px 8px;
+            font-size: 12px;
+            color: #24292e;
+        }
+
+        .active-filter .remove {
+            cursor: pointer;
+            color: #586069;
+            font-size: 14px;
+            line-height: 1;
+            padding: 0 2px;
+        }
+
+        .active-filter .remove:hover {
+            color: #24292e;
+        }
+
+        .active-filter .color-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
         }
     </html:style>
 
