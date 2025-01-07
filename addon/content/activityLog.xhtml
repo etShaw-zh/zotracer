@@ -241,18 +241,77 @@
             padding: 20px;
         }
 
-        .activity-list {
+        .article-group {
+            border: 1px solid #e1e4e8;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            background-color: #ffffff;
+        }
+
+        .article-header {
             display: flex;
-            flex-direction: column;
-            gap: 12px;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.2s;
+        }
+
+        .article-header:hover {
+            background-color: #f6f8fa;
+        }
+
+        .article-header-content {
+            flex-grow: 1;
+            margin-right: 12px;
+        }
+
+        .article-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #24292e;
+            margin-bottom: 4px;
+        }
+
+        .article-stats {
+            font-size: 12px;
+            color: #586069;
+        }
+
+        .toggle-button {
+            background: none;
+            border: none;
+            padding: 4px;
+            cursor: pointer;
+            color: #586069;
+        }
+
+        .toggle-button .icon {
+            display: inline-block;
+            transition: transform 0.2s;
+        }
+
+        .activities-list {
+            border-top: 1px solid #e1e4e8;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+
+        .activities-list.collapsed {
+            max-height: 0;
+            border-top: none;
         }
 
         .activity-item {
-            padding: 12px;
-            border: 1px solid #e1e4e8;
-            border-radius: 6px;
+            padding: 12px 16px;
+            border-bottom: 1px solid #e1e4e8;
             background-color: #ffffff;
             transition: background-color 0.2s;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
         }
 
         .activity-item:hover {
@@ -260,8 +319,7 @@
         }
 
         .activity-title {
-            font-size: 14px;
-            font-weight: 600;
+            font-size: 13px;
             color: #24292e;
             margin-bottom: 4px;
         }
@@ -269,6 +327,16 @@
         .activity-time {
             font-size: 12px;
             color: #586069;
+        }
+
+        .empty-message {
+            padding: 32px;
+            text-align: center;
+            color: #586069;
+            font-size: 14px;
+            background: #f6f8fa;
+            border-radius: 6px;
+            border: 1px dashed #e1e4e8;
         }
 
         .tooltip {

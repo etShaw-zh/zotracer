@@ -218,13 +218,64 @@ const ZoTracerActivityLog = {
             this.activityList.appendChild(emptyMessage);
             return;
         }
-        
-        // Group activities by date
-        const groupedActivities = this.groupActivitiesByDate(activities);
-        
-        // Create activity items
-        for (const [dateStr, dateActivities] of Object.entries(groupedActivities)) {
-            dateActivities.forEach(activity => {
+
+        // Group activities by article title
+        const groupedByArticle = {};
+        activities.forEach(activity => {
+            const title = activity.articleTitle || 'Other Activities';
+            if (!groupedByArticle[title]) {
+                groupedByArticle[title] = {
+                    activities: [],
+                    lastModified: new Date(0)
+                };
+            }
+            groupedByArticle[title].activities.push(activity);
+            const activityDate = new Date(activity.timestamp);
+            if (activityDate > groupedByArticle[title].lastModified) {
+                groupedByArticle[title].lastModified = activityDate;
+            }
+        });
+
+        // Sort articles by last modified date
+        const sortedArticles = Object.entries(groupedByArticle)
+            .sort(([, a], [, b]) => b.lastModified - a.lastModified);
+
+        // Create article groups
+        sortedArticles.forEach(([title, data]) => {
+            const articleGroup = document.createElement('div');
+            articleGroup.className = 'article-group';
+
+            // Create header
+            const header = document.createElement('div');
+            header.className = 'article-header';
+            
+            const headerContent = document.createElement('div');
+            headerContent.className = 'article-header-content';
+            
+            const titleEl = document.createElement('div');
+            titleEl.className = 'article-title';
+            titleEl.textContent = title;
+            
+            const stats = document.createElement('div');
+            stats.className = 'article-stats';
+            stats.textContent = `${data.activities.length} activities · Last modified ${this.formatDate(data.lastModified)}`;
+            
+            headerContent.appendChild(titleEl);
+            headerContent.appendChild(stats);
+            
+            const toggleButton = document.createElement('button');
+            toggleButton.className = 'toggle-button';
+            toggleButton.innerHTML = '<span class="icon">▼</span>';
+            
+            header.appendChild(headerContent);
+            header.appendChild(toggleButton);
+            
+            // Create activities container
+            const activitiesList = document.createElement('div');
+            activitiesList.className = 'activities-list collapsed';
+
+            // Add activities to container
+            data.activities.forEach(activity => {
                 const activityItem = document.createElement('div');
                 activityItem.className = 'activity-item';
                 
@@ -238,9 +289,20 @@ const ZoTracerActivityLog = {
                 
                 activityItem.appendChild(title);
                 activityItem.appendChild(time);
-                this.activityList.appendChild(activityItem);
+                activitiesList.appendChild(activityItem);
             });
-        }
+
+            // Add click handler for expand/collapse
+            header.addEventListener('click', () => {
+                activitiesList.classList.toggle('collapsed');
+                toggleButton.querySelector('.icon').style.transform = 
+                    activitiesList.classList.contains('collapsed') ? 'rotate(0deg)' : 'rotate(180deg)';
+            });
+
+            articleGroup.appendChild(header);
+            articleGroup.appendChild(activitiesList);
+            this.activityList.appendChild(articleGroup);
+        });
     },
 
     getColorForLevel: function(level) {
