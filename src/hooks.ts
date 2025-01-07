@@ -13,9 +13,19 @@ async function onStartup() {
     Zotero.uiReadyPromise,
   ]);
 
+  // Initialize ZoTracer namespace
+  if (!Zotero.ZoTracer) {
+    Zotero.ZoTracer = {};
+  }
+
   initLocale();
   registerPrefs();
-  await DatabaseManager.getInstance().init();
+
+  // Initialize and attach DatabaseManager
+  const dbManager = DatabaseManager.getInstance();
+  await dbManager.init();
+  Zotero.ZoTracer.DatabaseManager = DatabaseManager;
+
   registerActivityNotifier();
   await Promise.all(
     Zotero.getMainWindows().map((win) => onMainWindowLoad(win)),
