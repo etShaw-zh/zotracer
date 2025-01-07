@@ -121,12 +121,31 @@ export class DatabaseManager {
   }
 
   public async getActivities(
-    limit: number = 100,
+    limit?: number,
     offset: number = 0
   ) {
-    const query = `SELECT * FROM user_activities 
-      ORDER BY timestamp DESC LIMIT ? OFFSET ?`;
-    return await this.db.queryAsync(query, [limit, offset]);
+    let query = `SELECT * FROM user_activities ORDER BY timestamp DESC`;
+    const params: any[] = [];
+    
+    if (limit) {
+      query += ` LIMIT ? OFFSET ?`;
+      params.push(limit, offset);
+    } else if (offset > 0) {
+      query += ` OFFSET ?`;
+      params.push(offset);
+    }
+    
+    return await this.db.queryAsync(query, params);
+  }
+
+  public async getTags() {
+    const query = `SELECT DISTINCT annotationTags FROM user_activities WHERE annotationTags IS NOT NULL`;
+    return await this.db.queryAsync(query);
+  }
+
+  public async getColors() {
+    const query = `SELECT DISTINCT annotationColor FROM user_activities WHERE annotationColor IS NOT NULL`;
+    return await this.db.queryAsync(query);
   }
 
   public async cleanup() {

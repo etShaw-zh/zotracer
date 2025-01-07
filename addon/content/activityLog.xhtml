@@ -5,37 +5,488 @@
 <window
     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
     xmlns:html="http://www.w3.org/1999/xhtml"
-    data-l10n-id="activitylog-title"
-    width="800"
-    height="600">
-    <vbox flex="1">
-        <hbox align="center" style="padding: 10px;">
-            <html:label data-l10n-id="activitylog-filter-label"/>
-            <menulist id="filter-type">
-                <menupopup>
-                    <menuitem data-l10n-id="activitylog-filter-all" value="all"/>
-                    <menuitem data-l10n-id="activitylog-filter-item" value="item"/>
-                    <menuitem data-l10n-id="activitylog-filter-file" value="file"/>
-                    <menuitem data-l10n-id="activitylog-filter-tab" value="tab"/>
-                </menupopup>
-            </menulist>
-            <spacer flex="1"/>
-            <button data-l10n-id="activitylog-refresh" oncommand="ZoTracerActivityLog.updateActivityLog()"/>
-        </hbox>
+    title="Research Activity Log"
+    width="1366"
+    height="768">
+    
+    <html:div class="container">
+        <html:div class="sidebar">
+            <html:div class="filters">
+                <html:h3>Filters</html:h3>
+                <html:div class="filter-group">
+                    <html:label>Activity Type</html:label>
+                    <html:select id="filter-type" class="select-control">
+                        <html:option value="all">All Activities</html:option>
+                        <html:optgroup label="Annotations">
+                            <html:option value="highlight_annotation">Highlight</html:option>
+                            <html:option value="underline_annotation">Underline</html:option>
+                            <html:option value="modify_annotation">Modify Annotation</html:option>
+                        </html:optgroup>
+                        <html:optgroup label="Notes">
+                            <html:option value="add_note">Add Note</html:option>
+                        </html:optgroup>
+                        <html:optgroup label="Items">
+                            <html:option value="add_item">Add Item</html:option>
+                            <html:option value="modify_item">Modify Item</html:option>
+                            <html:option value="trash_item">Trash Item</html:option>
+                            <html:option value="delete_item">Delete Item</html:option>
+                            <html:option value="index_item">Index Item</html:option>
+                            <html:option value="refresh_item">Refresh Item</html:option>
+                        </html:optgroup>
+                        <html:optgroup label="Files and Tabs">
+                            <html:option value="open_file">Open File</html:option>
+                            <html:option value="add_tab">Add Tab</html:option>
+                            <html:option value="select_tab">Select Tab</html:option>
+                            <html:option value="close_tab">Close Tab</html:option>
+                        </html:optgroup>
+                    </html:select>
+                </html:div>
+                <html:div class="filter-group">
+                    <html:label>Time Period</html:label>
+                    <html:select id="time-range" class="select-control">
+                        <html:option value="today">Today</html:option>
+                        <html:option value="week">Past 7 Days</html:option>
+                        <html:option value="month">Past Month</html:option>
+                        <html:option value="custom">Custom Range</html:option>
+                    </html:select>
+                    <html:div id="custom-range" class="custom-range">
+                        <html:input type="date" id="date-from" class="date-input" />
+                        <html:span>to</html:span>
+                        <html:input type="date" id="date-to" class="date-input" />
+                    </html:div>
+                </html:div>
+                <html:button id="refresh-btn" class="primary-button">
+                    <html:span class="icon">↻</html:span>
+                    Refresh
+                </html:button>
+            </html:div>
+            <html:div class="search-filter">
+                <html:div class="filter-group">
+                    <html:label>Quick Filters</html:label>
+                    <html:div class="tag-filters">
+                        <html:div id="color-filters" class="color-filters"></html:div>    
+                        <html:div id="tag-filters" class="tags-section"></html:div>
+                        <html:div id="active-filters" class="active-filters"></html:div>
+                    </html:div>
+                </html:div>
+            </html:div>
+        </html:div>
 
-        <tree id="activity-log" flex="1" enableColumnDrag="true" style="margin: 10px;">
-            <treecols>
-                <treecol id="timestamp" data-l10n-id="activitylog-column-time" flex="1"/>
-                <splitter class="tree-splitter"/>
-                <treecol id="action" data-l10n-id="activitylog-column-action" flex="1"/>
-                <splitter class="tree-splitter"/>
-                <treecol id="item" data-l10n-id="activitylog-column-item" flex="1"/>
-                <splitter class="tree-splitter"/>
-                <treecol id="source" data-l10n-id="activitylog-column-source" flex="1"/>
-            </treecols>
-            <treechildren/>
-        </tree>
-    </vbox>
+        <html:div class="main-content">
+            <html:div class="activity-overview">
+                <html:h2>Activity Overview</html:h2>
+                <html:div class="activity-visualization">
+                    <html:div class="activity-grid" id="activity-grid"></html:div>
+                    <html:div class="heatmap-legend">
+                        <html:span class="legend-text">Less</html:span>
+                        <html:div class="legend-colors">
+                            <html:div class="legend-color" style="background-color: #ebedf0"></html:div>
+                            <html:div class="legend-color" style="background-color: #9be9a8"></html:div>
+                            <html:div class="legend-color" style="background-color: #40c463"></html:div>
+                            <html:div class="legend-color" style="background-color: #30a14e"></html:div>
+                            <html:div class="legend-color" style="background-color: #216e39"></html:div>
+                        </html:div>
+                        <html:span class="legend-text">More</html:span>
+                    </html:div>
+                </html:div>
+            </html:div>
+
+            <html:div class="activity-details">
+                <html:h2>Activity Details</html:h2>
+                <html:div class="activity-list" id="activity-list"></html:div>
+            </html:div>
+        </html:div>
+    </html:div>
+
+    <html:div class="tooltip" id="tooltip"></html:div>
+
+    <html:style>
+        .container {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 20px;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            color: #24292e;
+            background-color: #f6f8fa;
+        }
+
+        .sidebar {
+            background-color: #ffffff;
+            border-right: 1px solid #e1e4e8;
+            padding: 20px;
+            height: 100%;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filters {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .search-filter {
+            margin-top: auto;
+            padding-top: 16px;
+            border-top: 1px solid #e1e4e8;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .filter-group label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #586069;
+        }
+
+        .select-control {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #e1e4e8;
+            border-radius: 6px;
+            background-color: #ffffff;
+            font-size: 14px;
+            color: #24292e;
+        }
+
+        .primary-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 8px;
+            background-color: #2ea44f;
+            color: #ffffff;
+            border: 1px solid rgba(27, 31, 35, 0.15);
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .primary-button:hover {
+            background-color: #2c974b;
+        }
+
+        .custom-range {
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .custom-range.visible {
+            display: flex;
+        }
+
+        .date-input {
+            padding: 6px;
+            border: 1px solid #e1e4e8;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .activity-overview {
+            flex-shrink: 0;
+            background-color: #ffffff;
+            border: 1px solid #e1e4e8;
+            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .activity-visualization {
+            margin-top: 16px;
+        }
+
+        .activity-grid {
+            display: grid;
+            grid-template-columns: repeat(53, 1fr);
+            gap: 3px;
+            margin-bottom: 8px;
+        }
+
+        .activity-cell {
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+            background-color: #ebedf0;
+        }
+
+        .heatmap-legend {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 8px;
+            font-size: 12px;
+            color: #586069;
+        }
+
+        .legend-colors {
+            display: flex;
+            gap: 2px;
+        }
+
+        .legend-color {
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+        }
+
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .activity-details {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: #ffffff;
+            border: 1px solid #e1e4e8;
+            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 20px;
+            min-height: 0;
+        }
+
+        .activity-details h2 {
+            flex-shrink: 0;
+            margin-top: 0;
+            margin-bottom: 16px;
+        }
+
+        .activity-list {
+            flex-grow: 1;
+            overflow-y: auto;
+            min-height: 0;
+        }
+
+        .article-group {
+            border: 1px solid #e1e4e8;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            background-color: #ffffff;
+        }
+
+        .article-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.2s;
+        }
+
+        .article-header:hover {
+            background-color: #f6f8fa;
+        }
+
+        .article-header-content {
+            flex-grow: 1;
+            margin-right: 12px;
+        }
+
+        .article-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #24292e;
+            margin-bottom: 4px;
+        }
+
+        .article-stats {
+            font-size: 12px;
+            color: #586069;
+        }
+
+        .toggle-button {
+            background: none;
+            border: none;
+            padding: 4px;
+            cursor: pointer;
+            color: #586069;
+        }
+
+        .toggle-button .icon {
+            display: inline-block;
+            transition: transform 0.2s;
+        }
+
+        .activities-list {
+            border-top: 1px solid #e1e4e8;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+
+        .activities-list.collapsed {
+            max-height: 0;
+            border-top: none;
+        }
+
+        .activity-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid #e1e4e8;
+            background-color: #ffffff;
+            transition: background-color 0.2s;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-item:hover {
+            background-color: #f6f8fa;
+        }
+
+        .activity-title {
+            font-size: 13px;
+            color: #24292e;
+            margin-bottom: 4px;
+        }
+
+        .activity-time {
+            font-size: 12px;
+            color: #586069;
+        }
+
+        .empty-message {
+            padding: 32px;
+            text-align: center;
+            color: #586069;
+            font-size: 14px;
+            background: #f6f8fa;
+            border-radius: 6px;
+            border: 1px dashed #e1e4e8;
+        }
+
+        .tooltip {
+            position: absolute;
+            padding: 8px 12px;
+            background-color: #24292e;
+            color: #ffffff;
+            border-radius: 6px;
+            font-size: 12px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 1000;
+        }
+
+        .tooltip.visible {
+            opacity: 1;
+        }
+
+        .tag-filters {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .tags-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .tag-filter {
+            background: #f6f8fa;
+            border: 1px solid #e1e4e8;
+            border-radius: 12px;
+            padding: 4px 10px;
+            font-size: 12px;
+            color: #24292e;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tag-filter:hover {
+            background: #f3f4f6;
+            border-color: #d1d5da;
+        }
+
+        .tag-filter.active {
+            background: #0366d6;
+            color: white;
+            border-color: #0366d6;
+        }
+
+        .color-filters {
+            display: flex;
+            gap: 8px;
+            padding: 4px 0;
+        }
+
+        .color-filter {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            padding: 0;
+            transition: all 0.2s;
+        }
+
+        .color-filter:hover {
+            transform: scale(1.1);
+        }
+
+        .color-filter.active {
+            border-color: #24292e;
+            transform: scale(1.1);
+        }
+
+        .active-filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            min-height: 28px;
+            padding: 4px 0;
+        }
+
+        .active-filter {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: #f6f8fa;
+            border: 1px solid #e1e4e8;
+            border-radius: 12px;
+            padding: 4px 8px;
+            font-size: 12px;
+            color: #24292e;
+        }
+
+        .active-filter .remove {
+            cursor: pointer;
+            color: #586069;
+            font-size: 14px;
+            line-height: 1;
+            padding: 0 2px;
+        }
+
+        .active-filter .remove:hover {
+            color: #24292e;
+        }
+
+        .active-filter .color-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+    </html:style>
 
     <script type="application/javascript" src="chrome://zotero/content/include.js"/>
     <script type="application/javascript" src="activityLog.js"/>

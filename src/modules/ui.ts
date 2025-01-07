@@ -51,13 +51,31 @@ export class UIManager {
     }
   }
 
-  private openActivityLogWindow() {
+  public async openActivityLogWindow() {
     if (!this.win) {
       ztoolkit.log("[ZoTracer] Window not available");
       return;
     }
 
     try {
+      // Ensure ZoTracer is initialized
+      if (!Zotero.ZoTracer) {
+        ztoolkit.log("[ZoTracer] ZoTracer module not initialized");
+        return;
+      }
+
+      // Wait for database manager to be available
+      let attempts = 0;
+      while (!Zotero.ZoTracer.DatabaseManager && attempts < 5) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        attempts++;
+      }
+
+      if (!Zotero.ZoTracer.DatabaseManager) {
+        ztoolkit.log("[ZoTracer] Database manager not available after waiting");
+        return;
+      }
+
       const activityWindow = this.win.open(
         `chrome://${config.addonRef}/content/activityLog.xhtml`,
         "ZoTracer-activity-log",
