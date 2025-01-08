@@ -6,8 +6,8 @@
   "homepage_url": "__homepage__",
   "author": "__author__",
   "icons": {
-    "48": "content/icons/favicon@0.5x.ico",
-    "96": "content/icons/favicon.ico"
+    "48": "content/icons/icon@1x.ico",
+    "96": "content/icons/icon@1.5x.ico"
   },
   "applications": {
     "zotero": {

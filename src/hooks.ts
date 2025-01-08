@@ -123,7 +123,7 @@ function registerPrefs() {
     pluginID: addon.data.config.addonID,
     src: rootURI + "content/preferences.xhtml",
     label: getString("prefs-title"),
-    image: `chrome://${addon.data.config.addonRef}/content/icons/favicon.ico`,
+    image: `chrome://${addon.data.config.addonRef}/content/icons/icon@1x.ico`,
   });
 }
 

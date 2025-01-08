@@ -7,7 +7,9 @@
     xmlns:html="http://www.w3.org/1999/xhtml"
     title="Research Activity Log"
     width="1366"
-    height="768">
+    height="768"
+    minwidth="1366"
+    style="min-width: 1366px !important;">
     
     <html:div class="container">
         <html:div class="sidebar">
@@ -81,7 +83,22 @@
                     </html:button>
                 </html:div>
                 <html:div class="activity-visualization">
-                    <html:div class="activity-grid" id="activity-grid"></html:div>
+                    <html:div class="activity-grid" id="activity-grid">
+                        <html:div class="month-labels">
+                            <html:div class="month-label">Jan</html:div>
+                            <html:div class="month-label">Feb</html:div>
+                            <html:div class="month-label">Mar</html:div>
+                            <html:div class="month-label">Apr</html:div>
+                            <html:div class="month-label">May</html:div>
+                            <html:div class="month-label">Jun</html:div>
+                            <html:div class="month-label">Jul</html:div>
+                            <html:div class="month-label">Aug</html:div>
+                            <html:div class="month-label">Sep</html:div>
+                            <html:div class="month-label">Oct</html:div>
+                            <html:div class="month-label">Nov</html:div>
+                            <html:div class="month-label">Dec</html:div>
+                        </html:div>
+                    </html:div>
                     <html:div class="heatmap-legend">
                         <html:span class="legend-text">Less</html:span>
                         <html:div class="legend-colors">
@@ -269,14 +286,18 @@
 
         .activity-visualization {
             margin-top: 16px;
-            margin-bottom: 10px;
+            position: relative;
+            padding-top: 20px;
+            width: 689px;
         }
 
         .activity-grid {
             display: grid;
-            grid-template-columns: repeat(53, 1fr);
+            grid-template-rows: repeat(7, 1fr);
+            grid-auto-flow: column;
             gap: 3px;
             margin-bottom: 8px;
+            width: 689px;
         }
 
         .activity-cell {
@@ -284,6 +305,27 @@
             height: 10px;
             border-radius: 2px;
             background-color: #ebedf0;
+            flex-shrink: 0;
+        }
+
+        .month-labels {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 689px;
+            display: grid;
+            grid-template-columns: repeat(53, 13px);
+            font-size: 10px;
+            color: #586069;
+            padding-bottom: 4px;
+            height: 16px;
+        }
+
+        .month-label {
+            grid-row: 1;
+            text-align: left;
+            white-space: nowrap;
+            transform: translateX(-50%);
         }
 
         .heatmap-legend {
@@ -291,8 +333,10 @@
             align-items: center;
             justify-content: flex-end;
             gap: 8px;
-            font-size: 12px;
+            font-size: 11px;
             color: #586069;
+            margin-top: 4px;
+            width: 689px;
         }
 
         .legend-colors {
@@ -436,16 +480,18 @@
         }
 
         .tooltip {
-            position: absolute;
-            padding: 8px 12px;
-            background-color: #24292e;
-            color: #ffffff;
-            border-radius: 6px;
+            position: fixed;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 8px 10px;
+            border-radius: 4px;
             font-size: 12px;
             pointer-events: none;
             opacity: 0;
-            transition: opacity 0.2s;
-            z-index: 1000;
+            transition: opacity 0.15s ease-in-out;
+            z-index: 9999;
+            white-space: nowrap;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
 
         .tooltip.visible {

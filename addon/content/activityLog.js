@@ -244,46 +244,106 @@ const ZoTracerActivityLog = {
         // Create activity map for the heatmap
         const activityMap = this.createActivityMap(activities);
         
-        // Find the maximum activity count for scaling
-        const maxCount = Math.max(...Object.values(activityMap));
+        // Calculate date range
+        const endDate = new Date();
+        const startDate = new Date(endDate);
+        startDate.setDate(startDate.getDate() - 364); // Go back 364 days
         
-        // Create grid cells for the past year
-        const today = new Date();
-        const cells = [];
-        
-        for (let i = 364; i >= 0; i--) {
-            const date = new Date(today);
-            date.setDate(date.getDate() - i);
-            const dateStr = date.toISOString().split('T')[0];
-            const count = activityMap[dateStr] || 0;
-            const level = this.getActivityLevel(count, maxCount);
-            
-            const cell = document.createElement('div');
-            cell.className = 'activity-cell';
-            cell.style.backgroundColor = this.getColorForLevel(level);
-            cell.setAttribute('data-date', dateStr);
-            cell.setAttribute('data-count', count);
-            
-            // Add hover event listeners
-            cell.addEventListener('mouseover', (e) => {
-                const tooltip = this.tooltip;
-                const date = new Date(dateStr);
-                const formattedDate = this.formatDate(date);
-                tooltip.textContent = `${count} activities on ${formattedDate}`;
-                tooltip.style.opacity = '1';
-                tooltip.style.left = `${e.pageX + 10}px`;
-                tooltip.style.top = `${e.pageY + 10}px`;
-            });
-            
-            cell.addEventListener('mouseout', () => {
-                this.tooltip.style.opacity = '0';
-            });
-            
-            cells.push(cell);
+        // Adjust startDate to previous Monday
+        while (startDate.getDay() !== 1) {
+            startDate.setDate(startDate.getDate() - 1);
         }
+
+        // Add month labels
+        const monthLabels = document.createElement('div');
+        monthLabels.className = 'month-labels';
         
-        // Add cells to the grid
-        cells.forEach(cell => this.activityGrid.appendChild(cell));
+        // Create month labels at fixed intervals
+        const monthPositions = [0, 12, 24, 36, 48]; // Show roughly every 3 months
+        monthPositions.forEach(weekIndex => {
+            const labelDate = new Date(startDate);
+            labelDate.setDate(labelDate.getDate() + (weekIndex * 7));
+            if (labelDate <= endDate) {
+                const label = document.createElement('div');
+                label.className = 'month-label';
+                label.textContent = labelDate.toLocaleString('default', { month: 'short' });
+                label.style.gridColumn = weekIndex + 1;
+                monthLabels.appendChild(label);
+            }
+        });
+        
+        this.activityGrid.appendChild(monthLabels);
+
+        // Create grid cells
+        const cells = [];
+        const currentDate = new Date(startDate);
+        
+        // Calculate max count for color scaling
+        const maxCount = Math.max(...Object.values(activityMap), 0);
+
+        // Create cells for each week (column)
+        while (currentDate <= endDate) {
+            // Create cells for each day in the week (rows in current column)
+            for (let day = 0; day < 7; day++) {
+                const dateStr = currentDate.toISOString().split('T')[0];
+                const count = activityMap[dateStr] || 0;
+                const level = this.getActivityLevel(count, maxCount);
+                
+                const cell = document.createElement('div');
+                cell.className = 'activity-cell';
+                cell.style.backgroundColor = this.getColorForLevel(level);
+                
+                // Store date and count as data attributes
+                cell.setAttribute('data-date', dateStr);
+                cell.setAttribute('data-count', count);
+                
+                // Add hover event listeners with correct date
+                const formattedDate = this.formatDate(currentDate);
+                cell.title = `${count} activities on ${formattedDate}`;
+                
+                cell.addEventListener('mouseover', (e) => {
+                    const tooltip = this.tooltip;
+                    tooltip.textContent = `${count} activities on ${formattedDate}`;
+                    tooltip.style.opacity = '1';
+                    
+                    // Get viewport dimensions
+                    const viewportWidth = window.innerWidth;
+                    const viewportHeight = window.innerHeight;
+                    
+                    // Get tooltip dimensions
+                    const tooltipWidth = tooltip.offsetWidth;
+                    const tooltipHeight = tooltip.offsetHeight;
+                    
+                    // Calculate positions
+                    let left = e.pageX + 10;
+                    let top = e.pageY + 10;
+                    
+                    // Check right edge
+                    if (left + tooltipWidth > viewportWidth) {
+                        left = e.pageX - tooltipWidth - 10;
+                    }
+                    
+                    // Check bottom edge
+                    if (top + tooltipHeight > viewportHeight) {
+                        top = e.pageY - tooltipHeight - 10;
+                    }
+                    
+                    // Apply positions
+                    tooltip.style.left = `${left}px`;
+                    tooltip.style.top = `${top}px`;
+                });
+                
+                cell.addEventListener('mouseout', () => {
+                    this.tooltip.style.opacity = '0';
+                });
+                
+                // Add cell directly to grid in correct order
+                this.activityGrid.appendChild(cell);
+                
+                // Move to next day
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+        }
     },
 
     displayActivities: function(activities) {
@@ -493,22 +553,11 @@ const ZoTracerActivityLog = {
     },
 
     formatDate: function(date) {
-        const now = new Date();
-        const yesterday = new Date(now);
-        yesterday.setDate(yesterday.getDate() - 1);
-        
-        if (this.isSameDay(date, now)) {
-            return 'Today';
-        } else if (this.isSameDay(date, yesterday)) {
-            return 'Yesterday';
-        } else {
-            return date.toLocaleDateString('zh-CN', { 
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            });
-        }
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const month = months[date.getMonth()];
+        const day = date.getDate();
+        const year = date.getFullYear();
+        return `${month} ${day}, ${year}`;
     },
 
     isSameDay: function(date1, date2) {
