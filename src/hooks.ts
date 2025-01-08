@@ -36,6 +36,7 @@ async function onStartup() {
   Zotero.CURRENT_ATTACHMENT = null;
   Zotero.CURRENT_ANNOTATION = null;
   Zotero.CURRENT_NOTE = null;
+  Zotero.FLOMO_CONTENT = [];
 }
 
 async function onMainWindowLoad(win: Window): Promise<void> {
