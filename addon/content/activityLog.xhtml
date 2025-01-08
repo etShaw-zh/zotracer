@@ -7,7 +7,9 @@
     xmlns:html="http://www.w3.org/1999/xhtml"
     title="Research Activity Log"
     width="1366"
-    height="768">
+    height="768"
+    minwidth="1366"
+    style="min-width: 1366px !important;">
     
     <html:div class="container">
         <html:div class="sidebar">
@@ -74,9 +76,29 @@
 
         <html:div class="main-content">
             <html:div class="activity-overview">
-                <html:h2>Activity Overview</html:h2>
+                <html:div class="overview-header">
+                    <html:h2>Activity Overview</html:h2>
+                    <html:button class="collapse-button" title="Toggle overview">
+                        <html:span class="collapse-icon">▼</html:span>
+                    </html:button>
+                </html:div>
                 <html:div class="activity-visualization">
-                    <html:div class="activity-grid" id="activity-grid"></html:div>
+                    <html:div class="activity-grid" id="activity-grid">
+                        <html:div class="month-labels">
+                            <html:div class="month-label">Jan</html:div>
+                            <html:div class="month-label">Feb</html:div>
+                            <html:div class="month-label">Mar</html:div>
+                            <html:div class="month-label">Apr</html:div>
+                            <html:div class="month-label">May</html:div>
+                            <html:div class="month-label">Jun</html:div>
+                            <html:div class="month-label">Jul</html:div>
+                            <html:div class="month-label">Aug</html:div>
+                            <html:div class="month-label">Sep</html:div>
+                            <html:div class="month-label">Oct</html:div>
+                            <html:div class="month-label">Nov</html:div>
+                            <html:div class="month-label">Dec</html:div>
+                        </html:div>
+                    </html:div>
                     <html:div class="heatmap-legend">
                         <html:span class="legend-text">Less</html:span>
                         <html:div class="legend-colors">
@@ -87,6 +109,16 @@
                             <html:div class="legend-color" style="background-color: #216e39"></html:div>
                         </html:div>
                         <html:span class="legend-text">More</html:span>
+                    </html:div>
+                </html:div>
+                <html:div class="additional-visualizations">
+                    <html:div class="chart-container">
+                        <html:h3>Most Active Collections</html:h3>
+                        <html:canvas id="collectionsChart"></html:canvas>
+                    </html:div>
+                    <html:div class="chart-container">
+                        <html:h3>Activity Types</html:h3>
+                        <html:canvas id="activityRadarChart"></html:canvas>
                     </html:div>
                 </html:div>
             </html:div>
@@ -140,22 +172,43 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
+            margin-bottom: 16px;
         }
 
         .filter-group label {
-            font-size: 12px;
-            font-weight: 600;
-            color: #586069;
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
         }
 
         .select-control {
             width: 100%;
             padding: 8px;
-            border: 1px solid #e1e4e8;
-            border-radius: 6px;
-            background-color: #ffffff;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: white;
             font-size: 14px;
-            color: #24292e;
+            color: #333;
+            cursor: pointer;
+            outline: none;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 8px center;
+            background-size: 16px;
+            padding-right: 32px;
+        }
+
+        .select-control:hover {
+            border-color: #999;
+        }
+
+        .select-control:focus {
+            border-color: #2196F3;
+            box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1);
         }
 
         .primary-button {
@@ -197,6 +250,7 @@
         }
 
         .activity-overview {
+            margin-top: 8px;
             flex-shrink: 0;
             background-color: #ffffff;
             border: 1px solid #e1e4e8;
@@ -205,15 +259,66 @@
             margin-bottom: 20px;
         }
 
+        .overview-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .overview-header h2 {
+            margin: 0;
+            font-size: inherit;
+        }
+
+        .collapse-button {
+            background: none;
+            border: none;
+            padding: 4px 8px;
+            cursor: pointer;
+            color: #586069;
+            border-radius: 3px;
+        }
+
+        .collapse-button:hover {
+            background-color: #f6f8fa;
+        }
+
+        .collapse-icon {
+            display: inline-block;
+            transition: transform 0.15s ease-in-out;
+        }
+
+        .collapsed .collapse-icon {
+            transform: rotate(-90deg);
+        }
+
+        .activity-overview.collapsed > *:not(.overview-header) {
+            display: none;
+        }
+
+        .activity-overview.collapsed + .activity-details {
+            margin-top: 8px;
+        }
+
+        .activity-overview:not(.collapsed) + .activity-details {
+            transition: margin-top 0.15s ease-in-out;
+        }
+
         .activity-visualization {
             margin-top: 16px;
+            position: relative;
+            padding-top: 20px;
+            width: 689px;
         }
 
         .activity-grid {
             display: grid;
-            grid-template-columns: repeat(53, 1fr);
+            grid-template-rows: repeat(7, 1fr);
+            grid-auto-flow: column;
             gap: 3px;
             margin-bottom: 8px;
+            width: 689px;
         }
 
         .activity-cell {
@@ -221,6 +326,27 @@
             height: 10px;
             border-radius: 2px;
             background-color: #ebedf0;
+            flex-shrink: 0;
+        }
+
+        .month-labels {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 689px;
+            display: grid;
+            grid-template-columns: repeat(53, 13px);
+            font-size: 10px;
+            color: #586069;
+            padding-bottom: 4px;
+            height: 16px;
+        }
+
+        .month-label {
+            grid-row: 1;
+            text-align: left;
+            white-space: nowrap;
+            transform: translateX(-50%);
         }
 
         .heatmap-legend {
@@ -228,8 +354,10 @@
             align-items: center;
             justify-content: flex-end;
             gap: 8px;
-            font-size: 12px;
+            font-size: 11px;
             color: #586069;
+            margin-top: 4px;
+            width: 689px;
         }
 
         .legend-colors {
@@ -373,16 +501,18 @@
         }
 
         .tooltip {
-            position: absolute;
-            padding: 8px 12px;
-            background-color: #24292e;
-            color: #ffffff;
-            border-radius: 6px;
+            position: fixed;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 8px 10px;
+            border-radius: 4px;
             font-size: 12px;
             pointer-events: none;
             opacity: 0;
-            transition: opacity 0.2s;
-            z-index: 1000;
+            transition: opacity 0.15s ease-in-out;
+            z-index: 9999;
+            white-space: nowrap;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
 
         .tooltip.visible {
@@ -486,8 +616,34 @@
             border-radius: 50%;
             display: inline-block;
         }
+
+        .chart-container {
+            flex: 1;
+            background: white;
+            border: 1px solid #e1e4e8;
+            border-radius: 6px;
+            padding: 6px;
+            min-height: 45px;
+            max-height: 95px;
+        }
+
+        .chart-container h3 {
+            margin: 0 0 2px 0;
+            font-size: 11px;
+            color: #24292e;
+            font-weight: 600;
+            line-height: 1;
+        }
+
+        .additional-visualizations {
+            display: flex;
+            gap: 12px;
+            margin-top: 4px;
+            margin-bottom: 4px;
+        }
     </html:style>
 
+    <script type="application/javascript" src="lib/chart.min.js"/>
     <script type="application/javascript" src="chrome://zotero/content/include.js"/>
     <script type="application/javascript" src="activityLog.js"/>
 </window>

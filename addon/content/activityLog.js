@@ -1,10 +1,16 @@
 const ZoTracerActivityLog = {
     activities: [],
+    collectionsChart: null,
+    activityRadarChart: null,
     
     init: async function() {
         try {
             // Wait for Zotero to be ready
-            await Zotero.initializationPromise;
+            await Promise.all([
+                Zotero.initializationPromise,
+                Zotero.unlockPromise,
+                Zotero.uiReadyPromise,
+              ]);
             
             // Wait for ZoTracer to be ready
             if (!window.Zotero.ZoTracer) {
@@ -178,6 +184,8 @@ const ZoTracerActivityLog = {
 
             // Update visualizations
             this.updateActivityGrid(filteredActivities);
+            this.updateCollectionsChart(filteredActivities);
+            this.updateActivityRadarChart(filteredActivities);
             this.displayActivities(filteredActivities);
         } catch (error) {
             console.error("[ZoTracer] Error updating activity log:", error);
@@ -185,7 +193,7 @@ const ZoTracerActivityLog = {
                 this.activityList.innerHTML = `
                     <div class="empty-message" style="color: #cf222e;">
                         Error updating activity log. Please try again.
-                        ${error.message ? `<br><small>${error.message}</small>` : ''}
+                        <small>${error.message || ''}</small>
                     </div>
                 `;
             }
@@ -236,46 +244,106 @@ const ZoTracerActivityLog = {
         // Create activity map for the heatmap
         const activityMap = this.createActivityMap(activities);
         
-        // Find the maximum activity count for scaling
-        const maxCount = Math.max(...Object.values(activityMap));
+        // Calculate date range
+        const endDate = new Date();
+        const startDate = new Date(endDate);
+        startDate.setDate(startDate.getDate() - 364); // Go back 364 days
         
-        // Create grid cells for the past year
-        const today = new Date();
-        const cells = [];
-        
-        for (let i = 364; i >= 0; i--) {
-            const date = new Date(today);
-            date.setDate(date.getDate() - i);
-            const dateStr = date.toISOString().split('T')[0];
-            const count = activityMap[dateStr] || 0;
-            const level = this.getActivityLevel(count, maxCount);
-            
-            const cell = document.createElement('div');
-            cell.className = 'activity-cell';
-            cell.style.backgroundColor = this.getColorForLevel(level);
-            cell.setAttribute('data-date', dateStr);
-            cell.setAttribute('data-count', count);
-            
-            // Add hover event listeners
-            cell.addEventListener('mouseover', (e) => {
-                const tooltip = this.tooltip;
-                const date = new Date(dateStr);
-                const formattedDate = this.formatDate(date);
-                tooltip.textContent = `${count} activities on ${formattedDate}`;
-                tooltip.style.opacity = '1';
-                tooltip.style.left = `${e.pageX + 10}px`;
-                tooltip.style.top = `${e.pageY + 10}px`;
-            });
-            
-            cell.addEventListener('mouseout', () => {
-                this.tooltip.style.opacity = '0';
-            });
-            
-            cells.push(cell);
+        // Adjust startDate to previous Monday
+        while (startDate.getDay() !== 1) {
+            startDate.setDate(startDate.getDate() - 1);
         }
+
+        // Add month labels
+        const monthLabels = document.createElement('div');
+        monthLabels.className = 'month-labels';
         
-        // Add cells to the grid
-        cells.forEach(cell => this.activityGrid.appendChild(cell));
+        // Create month labels at fixed intervals
+        const monthPositions = [0, 12, 24, 36, 48]; // Show roughly every 3 months
+        monthPositions.forEach(weekIndex => {
+            const labelDate = new Date(startDate);
+            labelDate.setDate(labelDate.getDate() + (weekIndex * 7));
+            if (labelDate <= endDate) {
+                const label = document.createElement('div');
+                label.className = 'month-label';
+                label.textContent = labelDate.toLocaleString('default', { month: 'short' });
+                label.style.gridColumn = weekIndex + 1;
+                monthLabels.appendChild(label);
+            }
+        });
+        
+        this.activityGrid.appendChild(monthLabels);
+
+        // Create grid cells
+        const cells = [];
+        const currentDate = new Date(startDate);
+        
+        // Calculate max count for color scaling
+        const maxCount = Math.max(...Object.values(activityMap), 0);
+
+        // Create cells for each week (column)
+        while (currentDate <= endDate) {
+            // Create cells for each day in the week (rows in current column)
+            for (let day = 0; day < 7; day++) {
+                const dateStr = currentDate.toISOString().split('T')[0];
+                const count = activityMap[dateStr] || 0;
+                const level = this.getActivityLevel(count, maxCount);
+                
+                const cell = document.createElement('div');
+                cell.className = 'activity-cell';
+                cell.style.backgroundColor = this.getColorForLevel(level);
+                
+                // Store date and count as data attributes
+                cell.setAttribute('data-date', dateStr);
+                cell.setAttribute('data-count', count);
+                
+                // Add hover event listeners with correct date
+                const formattedDate = this.formatDate(currentDate);
+                cell.title = `${count} activities on ${formattedDate}`;
+                
+                cell.addEventListener('mouseover', (e) => {
+                    const tooltip = this.tooltip;
+                    tooltip.textContent = `${count} activities on ${formattedDate}`;
+                    tooltip.style.opacity = '1';
+                    
+                    // Get viewport dimensions
+                    const viewportWidth = window.innerWidth;
+                    const viewportHeight = window.innerHeight;
+                    
+                    // Get tooltip dimensions
+                    const tooltipWidth = tooltip.offsetWidth;
+                    const tooltipHeight = tooltip.offsetHeight;
+                    
+                    // Calculate positions
+                    let left = e.pageX + 10;
+                    let top = e.pageY + 10;
+                    
+                    // Check right edge
+                    if (left + tooltipWidth > viewportWidth) {
+                        left = e.pageX - tooltipWidth - 10;
+                    }
+                    
+                    // Check bottom edge
+                    if (top + tooltipHeight > viewportHeight) {
+                        top = e.pageY - tooltipHeight - 10;
+                    }
+                    
+                    // Apply positions
+                    tooltip.style.left = `${left}px`;
+                    tooltip.style.top = `${top}px`;
+                });
+                
+                cell.addEventListener('mouseout', () => {
+                    this.tooltip.style.opacity = '0';
+                });
+                
+                // Add cell directly to grid in correct order
+                this.activityGrid.appendChild(cell);
+                
+                // Move to next day
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+        }
     },
 
     displayActivities: function(activities) {
@@ -485,22 +553,11 @@ const ZoTracerActivityLog = {
     },
 
     formatDate: function(date) {
-        const now = new Date();
-        const yesterday = new Date(now);
-        yesterday.setDate(yesterday.getDate() - 1);
-        
-        if (this.isSameDay(date, now)) {
-            return 'Today';
-        } else if (this.isSameDay(date, yesterday)) {
-            return 'Yesterday';
-        } else {
-            return date.toLocaleDateString('en-US', { 
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            });
-        }
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const month = months[date.getMonth()];
+        const day = date.getDate();
+        const year = date.getFullYear();
+        return `${month} ${day}, ${year}`;
     },
 
     isSameDay: function(date1, date2) {
@@ -538,7 +595,7 @@ const ZoTracerActivityLog = {
         // Get top 10 most frequent tags
         const topTags = Array.from(tagFrequency.entries())
             .sort((a, b) => b[1] - a[1]) // Sort by frequency in descending order
-            .slice(0, 15) // Take only top 10
+            .slice(0, 10) // Take only top 10
             .map(entry => entry[0]); // Get just the tags
 
         // Update color filters
@@ -590,12 +647,275 @@ const ZoTracerActivityLog = {
             this.tagFilters.appendChild(button);
         });
     },
+
+    updateCollectionsChart: async function(activities) {
+        const collectionStats = new Map();
+        
+        // Count activities per collection
+        activities.forEach(activity => {
+            if (activity.collectionIds) {
+                let collections;
+                try {
+                    collections = JSON.parse(activity.collectionIds);
+                    collections.forEach(collectionId => {
+                        collectionStats.set(collectionId, (collectionStats.get(collectionId) || 0) + 1);
+                    });
+                } catch (e) {
+                    console.error("[ZoTracer] Error parsing collection IDs:", e);
+                }
+            }
+        });
+
+        // Sort collections by activity count and get top 4
+        const topCollections = Array.from(collectionStats.entries())
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 4);
+
+        // Get collection names
+        const collectionsWithNames = await Promise.all(
+            topCollections.map(async ([id]) => {
+                try {
+                    const collection = await Zotero.Collections.get(id);
+                    return {
+                        id,
+                        name: collection ? collection.name : `Collection ${id}`,
+                        count: collectionStats.get(id)
+                    };
+                } catch (e) {
+                    console.error("[ZoTracer] Error getting collection name:", e);
+                    return {
+                        id,
+                        name: `Collection ${id}`,
+                        count: collectionStats.get(id)
+                    };
+                }
+            })
+        );
+
+        // Create bar chart
+        const ctx = document.getElementById('collectionsChart');
+        if (this.collectionsChart) {
+            this.collectionsChart.destroy();
+        }
+
+        const chartData = {
+            labels: collectionsWithNames.map(c => c.name),
+            datasets: [{
+                data: collectionsWithNames.map(c => c.count),
+                backgroundColor: '#9be9a8',
+                borderColor: '#40c463',
+                borderWidth: 1,
+                borderRadius: 4
+            }]
+        };
+
+        this.collectionsChart = new Chart(ctx, {
+            type: 'bar',
+            data: chartData,
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                events: [], // Disable all events
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        enabled: false
+                    }
+                },
+                scales: {
+                    x: {
+                        display: false,
+                        grid: {
+                            display: false
+                        }
+                    },
+                    y: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            padding: 2,
+                            font: {
+                                size: 10
+                            },
+                            callback: function(value) {
+                                const label = this.getLabelForValue(value);
+                                return label.length > 15 ? label.substring(0, 12) + '...' : label;
+                            }
+                        }
+                    }
+                },
+                layout: {
+                    padding: {
+                        left: 2,
+                        right: 20,
+                        top: 0,
+                        bottom: 0
+                    }
+                },
+                barThickness: 3,
+                maxBarThickness: 5,
+                barPercentage: 0.5,
+                categoryPercentage: 0.7
+            },
+            plugins: [{
+                afterDraw: function(chart) {
+                    var ctx = chart.ctx;
+                    chart.data.datasets.forEach(function(dataset, i) {
+                        var meta = chart.getDatasetMeta(i);
+                        meta.data.forEach(function(bar, index) {
+                            var data = dataset.data[index];
+                            ctx.fillStyle = '#586069';
+                            ctx.font = '10px system-ui';
+                            ctx.textAlign = 'left';
+                            ctx.textBaseline = 'middle';
+                            ctx.fillText(data, bar.x + 4, bar.y);
+                        });
+                    });
+                }
+            }]
+        });
+    },
+
+    updateActivityRadarChart: function(activities) {
+        // Count different types of activities
+        const activityTypes = {
+            'highlight_annotation': 0,
+            'underline_annotation': 0,
+            'add_note': 0,
+            'add_item': 0
+        };
+
+        activities.forEach(activity => {
+            if (activityTypes.hasOwnProperty(activity.activityType)) {
+                activityTypes[activity.activityType]++;
+            }
+        });
+
+        // Prepare chart data
+        const ctx = document.getElementById('activityRadarChart');
+        if (this.activityRadarChart) {
+            this.activityRadarChart.destroy();
+        }
+
+        const labels = [
+            'Highlight Annotation',
+            'Underline Annotation',
+            'Add Notes',
+            'Add Items'
+        ];
+        const data = [
+            activityTypes['highlight_annotation'],
+            activityTypes['underline_annotation'],
+            activityTypes['add_note'],
+            activityTypes['add_item']
+        ];
+
+        this.activityRadarChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: '#9be9a8',
+                    borderColor: '#40c463',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                events: [], // Disable all events
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        enabled: false
+                    }
+                },
+                scales: {
+                    x: {
+                        display: false,
+                        grid: {
+                            display: false
+                        }
+                    },
+                    y: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            padding: 2,
+                            font: {
+                                size: 10
+                            }
+                        }
+                    }
+                },
+                layout: {
+                    padding: {
+                        left: 2,
+                        right: 20,
+                        top: 0,
+                        bottom: 0
+                    }
+                },
+                barThickness: 3,
+                maxBarThickness: 5,
+                barPercentage: 0.5,
+                categoryPercentage: 0.7
+            },
+            plugins: [{
+                afterDraw: function(chart) {
+                    var ctx = chart.ctx;
+                    chart.data.datasets.forEach(function(dataset, i) {
+                        var meta = chart.getDatasetMeta(i);
+                        meta.data.forEach(function(bar, index) {
+                            var data = dataset.data[index];
+                            ctx.fillStyle = '#586069';
+                            ctx.font = '10px system-ui';
+                            ctx.textAlign = 'left';
+                            ctx.textBaseline = 'middle';
+                            ctx.fillText(data, bar.x + 4, bar.y);
+                        });
+                    });
+                }
+            }]
+        });
+    },
+    setupCollapse() {
+        const overviewSection = document.querySelector('.activity-overview');
+        const collapseButton = document.querySelector('.collapse-button');
+        
+        // Restore collapsed state from preferences
+        const isCollapsed = Zotero.Prefs.get('zotracer.overview.collapsed', true) || false;
+        if (isCollapsed) {
+            overviewSection.classList.add('collapsed');
+        }
+
+        collapseButton.addEventListener('click', () => {
+            overviewSection.classList.toggle('collapsed');
+            // Store collapsed state in preferences
+            Zotero.Prefs.set(
+                'zotracer.overview.collapsed',
+                overviewSection.classList.contains('collapsed'),
+                true
+            );
+        });
+    },
 };
 
 // Initialize when window loads
 window.addEventListener('load', () => {
     try {
         ZoTracerActivityLog.init();
+        ZoTracerActivityLog.setupCollapse();
     } catch (error) {
         console.error("[ZoTracer] Error during initialization:", error);
     }
