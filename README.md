@@ -23,6 +23,12 @@ ZoTracer is a [Zotero](https://www.zotero.org/) plugin that tracks your research
 > [!tip]
 > 👁 Watch this repo so that you can be notified whenever there are fixes & updates.
 
+## Screenshots
+
+<p align="center">
+    <img src="doc/imgs/screenshot_log_view.png" width=60%/ alt="">
+</p>
+
 ## Features
 
 - **Comprehensive Activity Tracking**
@@ -40,10 +46,11 @@ ZoTracer is a [Zotero](https://www.zotero.org/) plugin that tracks your research
 
 ## Quick Start
 
-1. Install the plugin through Zotero's Add-on Manager
-2. Your research activities will be automatically tracked
-3. Access activity logs through the plugin's interface (coming soon)
-4. Analyze your research patterns and optimize your workflow (coming soon)
+1. Download the plugin from [ZoTracer](https://github.com/etShaw-zh/zotracer/releases)
+2. Install the plugin through Zotero's Add-on Manager
+3. Your research activities will be automatically tracked
+4. Access activity logs through the plugin's interface
+5. Analyze your research patterns and optimize your workflow (coming soon)
 
 ## Disclaimer
 

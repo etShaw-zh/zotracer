@@ -595,7 +595,7 @@ const ZoTracerActivityLog = {
         // Get top 10 most frequent tags
         const topTags = Array.from(tagFrequency.entries())
             .sort((a, b) => b[1] - a[1]) // Sort by frequency in descending order
-            .slice(0, 15) // Take only top 10
+            .slice(0, 10) // Take only top 10
             .map(entry => entry[0]); // Get just the tags
 
         // Update color filters
