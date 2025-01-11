@@ -1,6 +1,6 @@
 {
   "name": "zotracer",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "ZoTracer is a Zotero plugin that tracks your research activities, creating a timeline of actions like saving or opening references. Analyze your study habits and streamline your research process with ease. ZoTracer 是一款 Zotero 插件，用于记录您的文献活动，如保存或打开文献，生成时间线。轻松分析学习习惯，优化研究流程。",
   "config": {
     "addonName": "ZoTracer",
