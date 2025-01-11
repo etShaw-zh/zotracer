@@ -22,25 +22,25 @@
                         <html:optgroup label="Annotations">
                             <html:option value="highlight_annotation">Highlight</html:option>
                             <html:option value="underline_annotation">Underline</html:option>
-                            <html:option value="modify_annotation">Modify Annotation</html:option>
+                            <!-- <html:option value="modify_annotation">Modify Annotation</html:option> -->
                         </html:optgroup>
                         <html:optgroup label="Notes">
                             <html:option value="add_note">Add Note</html:option>
                         </html:optgroup>
                         <html:optgroup label="Items">
                             <html:option value="add_item">Add Item</html:option>
-                            <html:option value="modify_item">Modify Item</html:option>
+                            <!-- <html:option value="modify_item">Modify Item</html:option>
                             <html:option value="trash_item">Trash Item</html:option>
                             <html:option value="delete_item">Delete Item</html:option>
                             <html:option value="index_item">Index Item</html:option>
-                            <html:option value="refresh_item">Refresh Item</html:option>
+                            <html:option value="refresh_item">Refresh Item</html:option> -->
                         </html:optgroup>
-                        <html:optgroup label="Files and Tabs">
+                        <!-- <html:optgroup label="Files and Tabs">
                             <html:option value="open_file">Open File</html:option>
                             <html:option value="add_tab">Add Tab</html:option>
                             <html:option value="select_tab">Select Tab</html:option>
                             <html:option value="close_tab">Close Tab</html:option>
-                        </html:optgroup>
+                        </html:optgroup> -->
                     </html:select>
                 </html:div>
                 <html:div class="filter-group">
@@ -82,7 +82,7 @@
                         <html:span class="collapse-icon">▼</html:span>
                     </html:button>
                 </html:div>
-                <html:div class="activity-visualization">
+                <!-- <html:div class="activity-visualization">
                     <html:div class="activity-grid" id="activity-grid">
                         <html:div class="month-labels">
                             <html:div class="month-label">Jan</html:div>
@@ -110,7 +110,7 @@
                         </html:div>
                         <html:span class="legend-text">More</html:span>
                     </html:div>
-                </html:div>
+                </html:div> -->
                 <html:div class="additional-visualizations">
                     <html:div class="chart-container">
                         <html:h3>Most Active Collections</html:h3>
@@ -124,7 +124,19 @@
             </html:div>
 
             <html:div class="activity-details">
-                <html:h2>Activity Details</html:h2>
+                <html:div class="activity-header">
+                    <html:h2>Activity Details</html:h2>
+                    <html:div class="sort-controls">
+                        <html:button class="sort-button" id="sortByTime">按时间排序 ▼</html:button>
+                        <html:button class="sort-button" id="sortByCount">按活动数排序 ▼</html:button>
+                        <html:div class="dropdown">
+                            <html:button class="sort-button" id="exportButton">导出数据 ▼</html:button>
+                            <html:div class="dropdown-content">
+                                <html:a href="#" id="syncToFlomo">同步到 flomo</html:a>
+                            </html:div>
+                        </html:div>
+                    </html:div>
+                </html:div>
                 <html:div class="activity-list" id="activity-list"></html:div>
             </html:div>
         </html:div>
@@ -250,13 +262,19 @@
         }
 
         .activity-overview {
-            margin-top: 8px;
-            flex-shrink: 0;
-            background-color: #ffffff;
-            border: 1px solid #e1e4e8;
-            border-radius: 6px;
-            padding: 20px;
-            margin-bottom: 20px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 16px;
+            padding: 16px;
+        }
+
+        .activity-details {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 16px;
+            padding: 16px;
         }
 
         .overview-header {
@@ -382,11 +400,6 @@
             flex-grow: 1;
             display: flex;
             flex-direction: column;
-            background-color: #ffffff;
-            border: 1px solid #e1e4e8;
-            border-radius: 6px;
-            padding: 20px;
-            margin-bottom: 20px;
             min-height: 0;
         }
 
@@ -465,7 +478,7 @@
         }
 
         .activity-item {
-            padding: 12px 16px;
+            padding: 12px;
             border-bottom: 1px solid #e1e4e8;
             background-color: #ffffff;
             transition: background-color 0.2s;
@@ -641,9 +654,300 @@
             margin-top: 4px;
             margin-bottom: 4px;
         }
+
+        .activity-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .sort-controls {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .sort-button {
+            padding: 0.5rem 1rem;
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background-color 0.2s;
+        }
+        
+        .sort-button:hover {
+            background-color: #e9e9e9;
+        }
+        
+        .activity-time {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .activity-tag {
+            display: inline-block;
+            padding: 2px 8px;
+            margin: 0 4px;
+            background-color: #f0f0f0;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .activity-action {
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .annotation-text {
+            margin: 8px 0;
+            color: #444;
+            line-height: 1.4;
+            padding-left: 8px;
+            border-left: 3px solid #e0e0e0;
+        }
+
+        .annotation-comment {
+            margin: 6px 0;
+            color: #666;
+            font-style: italic;
+        }
+
+        .comment-icon {
+            opacity: 0.7;
+            margin-right: 4px;
+        }
+
+        .quote-mark {
+            color: #999;
+            font-family: serif;
+            font-size: 1.2em;
+        }
+
+        .tags-container {
+            margin-top: 6px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .activity-tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 8px;
+            background-color: #f5f5f5;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            color: #666;
+            transition: background-color 0.2s;
+        }
+
+        .activity-tag:hover {
+            background-color: #e8e8e8;
+        }
+
+        .tag-icon {
+            color: #999;
+            margin-right: 4px;
+            font-weight: bold;
+        }
+
+        .color-dot {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-left: 6px;
+            vertical-align: middle;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .note-text {
+            margin: 8px 0;
+            color: #444;
+            line-height: 1.4;
+            padding: 8px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+        }
+
+        .activity-content {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 4px 8px;
+            background: white;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .activity-content:hover {
+            background: #f8f9fa;
+        }
+
+        .activity-header {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .activity-action {
+            font-weight: 500;
+            color: #333;
+            flex-grow: 1;
+            font-size: 0.95rem;
+        }
+
+        .activity-details {
+            margin-left: 20px;
+            border-left: 2px solid #e0e0e0;
+            padding-left: 8px;
+        }
+
+        .annotation-text {
+            color: #444;
+            line-height: 1.3;
+            font-size: 0.9rem;
+        }
+
+        .annotation-comment {
+            margin-top: 2px;
+            color: #666;
+            font-style: italic;
+            font-size: 0.85rem;
+        }
+
+        .tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-left: 20px;
+            margin-top: 2px;
+        }
+
+        .activity-tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 1px 8px;
+            background-color: #f0f2f5;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            color: #666;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .activity-tag:hover {
+            background-color: #e8e8e8;
+            border-color: #ddd;
+        }
+
+        .tag-icon {
+            color: #999;
+            margin-right: 4px;
+            font-weight: bold;
+        }
+
+        .color-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            flex-shrink: 0;
+        }
+
+        .note-text {
+            color: #444;
+            line-height: 1.3;
+            font-size: 0.9rem;
+            padding: 4px 8px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            margin: 2px 0;
+        }
+
+        .activity-item {
+            padding: 6px 12px;
+            border-bottom: 1px solid #eee;
+            transition: background-color 0.2s;
+        }
+
+        .activity-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .activity-time {
+            margin-top: 4px;
+            color: #888;
+            font-size: 0.8rem;
+        }
+
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background-color: #fff;
+            min-width: 120px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            z-index: 1000;
+        }
+
+        .dropdown-content a {
+            color: #333;
+            padding: 8px 12px;
+            text-decoration: none;
+            display: block;
+            font-size: 0.9rem;
+            transition: background-color 0.2s;
+        }
+
+        .dropdown-content a:hover {
+            background-color: #f5f5f5;
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        .dropdown:hover .sort-button {
+            background-color: #e9e9e9;
+        }
+
+        .overview-section {
+            margin-bottom: 20px;
+        }
+
+        .overview-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .section-title {
+            font-size: 1.1em;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 12px;
+        }
+
+        #collections-chart-container,
+        #activity-types-chart-container {
+            padding: 0;
+            margin: 0;
+        }
     </html:style>
 
-    <script type="application/javascript" src="lib/chart.min.js"/>
+    <script type="application/javascript" src="chrome://zotracer/content/lib/chart.min.js"/>
     <script type="application/javascript" src="chrome://zotero/content/include.js"/>
-    <script type="application/javascript" src="activityLog.js"/>
+    <script type="application/javascript" src="chrome://zotracer/content/activityLog.js"/>
 </window>

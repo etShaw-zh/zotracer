@@ -2,6 +2,9 @@ const ZoTracerActivityLog = {
     activities: [],
     collectionsChart: null,
     activityRadarChart: null,
+    dbManager: null,
+    sortTimeAsc: true,
+    sortCountAsc: true,
     
     init: async function() {
         try {
@@ -17,6 +20,10 @@ const ZoTracerActivityLog = {
                 console.error("[ZoTracer] ZoTracer module not found");
                 return;
             }
+            
+            // Initialize database manager
+            this.dbManager = Zotero.ZoTracer.DatabaseManager.getInstance();
+            await this.dbManager.init();
             
             // Initialize UI elements
             this.filterType = document.getElementById('filter-type');
@@ -81,6 +88,12 @@ const ZoTracerActivityLog = {
             this.timeRange.addEventListener('change', () => this.handleTimeRangeChange());
             this.dateFrom.addEventListener('change', () => this.updateActivityLog());
             this.dateTo.addEventListener('change', () => this.updateActivityLog());
+            
+            // Initialize sort buttons
+            this.initializeSortButtons();
+            
+            // Add event listeners for sorting and flomo sync
+            this.setupEventListeners();
             
             // Initial load
             await this.updateActivityLog(this.filterType.value);
@@ -148,7 +161,7 @@ const ZoTracerActivityLog = {
             console.log("[ZoTracer] Date range:", { startDate, endDate });
             
             // Get activities from database
-            this.activities = await dbManager.getActivities();
+            this.activities = await dbManager.getActivitiesSimple();
             console.log("[ZoTracer] Retrieved activities:", this.activities.length);
             
             // Extract unique tags and colors from activities
@@ -393,9 +406,16 @@ const ZoTracerActivityLog = {
             const headerContent = document.createElement('div');
             headerContent.className = 'article-header-content';
             
-            const titleEl = document.createElement('div');
+            const titleEl = document.createElement('a');
             titleEl.className = 'article-title';
             titleEl.textContent = title;
+            titleEl.href = '#';
+            titleEl.onclick = (event) => {
+                event.preventDefault();
+                if (data.activities[0].articleId) {
+                    Zotero.getActiveZoteroPane().selectItem(data.activities[0].articleId);
+                }
+            };
             
             const stats = document.createElement('div');
             stats.className = 'article-stats';
@@ -420,13 +440,26 @@ const ZoTracerActivityLog = {
                 const activityItem = document.createElement('div');
                 activityItem.className = 'activity-item';
                 
-                const title = document.createElement('div');
+                const title = document.createElement('a');
                 title.className = 'activity-title';
-                title.textContent = this.formatActivityDescription(activity);
+                title.innerHTML = this.formatActivityDescription(activity);
+                title.href = '#';
+                title.style.textDecoration = 'none';
+                title.onclick = (event) => {
+                    event.preventDefault();
+                    if (activity.articleId) {
+                        Zotero.getActiveZoteroPane().selectItem(activity.articleId);
+                    }
+                };
                 
                 const time = document.createElement('div');
                 time.className = 'activity-time';
-                time.textContent = new Date(activity.timestamp).toLocaleTimeString();
+                time.setAttribute('data-timestamp', activity.timestamp);
+                time.textContent = new Date(activity.timestamp).toLocaleString();
+                
+                // Add count attribute for sorting
+                const count = this.getActivityCount(activity);
+                activityItem.setAttribute('data-count', count);
                 
                 activityItem.appendChild(title);
                 activityItem.appendChild(time);
@@ -444,6 +477,174 @@ const ZoTracerActivityLog = {
             articleGroup.appendChild(activitiesList);
             this.activityList.appendChild(articleGroup);
         });
+    },
+
+    initializeSortButtons: function() {
+        const timeButton = document.getElementById('sortByTime');
+        const countButton = document.getElementById('sortByCount');
+
+        if (!timeButton || !countButton) {
+            console.error('[ZoTracer] Sort buttons not found');
+            return;
+        }
+
+        this.sortTimeAsc = false;
+        this.sortCountAsc = false;
+
+        timeButton.textContent = `按时间排序 ${this.sortTimeAsc ? '▲' : '▼'}`;
+        countButton.textContent = `按活动数排序 ${this.sortCountAsc ? '▲' : '▼'}`;
+
+        timeButton.addEventListener('click', () => {
+            this.sortTimeAsc = !this.sortTimeAsc;
+            timeButton.textContent = `按时间排序 ${this.sortTimeAsc ? '▲' : '▼'}`;
+            this.sortActivities('time', this.sortTimeAsc);
+        });
+
+        countButton.addEventListener('click', () => {
+            this.sortCountAsc = !this.sortCountAsc;
+            countButton.textContent = `按活动数排序 ${this.sortCountAsc ? '▲' : '▼'}`;
+            this.sortActivities('count', this.sortCountAsc);
+        });
+    },
+
+    setupEventListeners: function() {
+        // Export and sync to flomo functionality
+        document.getElementById('syncToFlomo').addEventListener('click', (event) => {
+            event.preventDefault();
+            this.syncToFlomo();
+        });
+    },
+
+    syncToFlomo: async function() {
+        try {
+            // Get the currently filtered activities
+            const { startDate, endDate } = this.getDateRange();
+            const filterType = this.filterType.value;
+            
+            // Filter activities based on current filters
+            const filteredActivities = this.activities.filter(activity => {
+                const activityDate = new Date(activity.timestamp);
+                const matchesDate = activityDate >= startDate && activityDate <= endDate;
+                const matchesType = filterType === 'all' ? activity.activityType !== 'add_item' : activity.activityType === filterType
+                
+                // Check tag filters
+                const matchesTags = this.activeTagFilters.size === 0 || Array.from(this.activeTagFilters).some(tag => {
+                    return activity.annotationTags && activity.annotationTags.includes(tag);
+                });
+                
+                // Check color filters
+                const matchesColors = this.activeColorFilters.size === 0 || Array.from(this.activeColorFilters).some(color => {
+                    return activity.annotationColor === color;
+                });
+                
+                return matchesDate && matchesType && matchesTags && matchesColors;
+            });
+
+            // Group activities by article
+            const groupedByArticle = {};
+            filteredActivities.forEach(activity => {
+                const title = activity.articleTitle || 'Other Activities';
+                if (!groupedByArticle[title]) {
+                    groupedByArticle[title] = [];
+                }
+                groupedByArticle[title].push(activity);
+            });
+
+            let flomoContent = '';
+
+            // Format content for each article
+            for (const [title, activities] of Object.entries(groupedByArticle)) {
+                // Add article title as a memo title
+                flomoContent += `# 📖 ${title}\n\n`;
+
+                for (const activity of activities) {
+                    // Get activity type and determine icon
+                    let icon = '📝'; // Default icon for notes
+                    if (activity.activityType === 'highlight_annotation') {
+                        icon = '💡';
+                    } else if (activity.activityType === 'underline_annotation') {
+                        icon = '📌';
+                    }
+
+                    // Add annotation text or note content
+                    if (activity.annotationText) {
+                        flomoContent += `${icon} ${activity.annotationText}\n`;
+                    } else if (activity.noteText) {
+                        // Extract note content from HTML
+                        const noteMatch = activity.noteText.match(/<p>(.*?)<\/p>/);
+                        if (noteMatch) {
+                            flomoContent += `${icon} ${noteMatch[1]}\n`;
+                        }
+                    }
+
+                    // Add annotation comment if present
+                    if (activity.annotationComment) {
+                        flomoContent += `💭 ${activity.annotationComment}\n`;
+                    }
+
+                    // Add tags if present
+                    if (activity.annotationTags) {
+                        try {
+                            const tags = JSON.parse(activity.annotationTags);
+                            if (Array.isArray(tags) && tags.length > 0) {
+                                const tagStr = tags.map(tag => {
+                                    // Replace spaces with underscores in tag
+                                    const formattedTag = tag.tag.replace(/\s+/g, '_');
+                                    return `#${formattedTag}`;
+                                }).join(' ');
+                                flomoContent += `${tagStr}\n`;
+                            }
+                        } catch (e) {
+                            console.error('[ZoTracer] Error parsing annotation tags:', e);
+                        }
+                    }
+
+                    // Add timestamp
+                    flomoContent += `_${new Date(activity.timestamp).toLocaleString()}_\n\n`;
+                }
+
+                // Add separator between articles
+                flomoContent += '---\n\n';
+            }
+
+            // Add source tag at the end
+            flomoContent += '#zotero #research';
+
+            // Send to Flomo using Zotero's HTTP client
+            const httpClient = Zotero.ZoTracer.HttpClient;
+            const response = await httpClient.sendToFlomo(flomoContent);
+            alert("✨ 同步成功！\n\n您的阅读笔记已成功保存到 Flomo 📚");
+        } catch (error) {
+            console.error('[ZoTracer] Error syncing to Flomo:', error);
+            if (error.message.includes("PRO membership")) {
+                alert("⭐️ 需要升级\n\n此功能需要 Flomo PRO 会员才能使用\n请升级您的 Flomo 账户以使用此功能");
+            } else {
+                alert("❌ 同步失败\n\n无法保存到 Flomo，请检查：\n1. 网络连接是否正常\n2. Webhook 地址是否正确\n\n详细错误：" + error.message);
+            }
+        }
+    },
+
+    sortActivities: function(sortType, isAscending) {
+        const activityList = document.getElementById('activity-list');
+        const articleGroups = Array.from(activityList.children);
+        
+        articleGroups.sort((a, b) => {
+            if (sortType === 'time') {
+                // 获取最新活动的时间戳进行比较
+                const timeA = a.querySelector('.activity-time').getAttribute('data-timestamp');
+                const timeB = b.querySelector('.activity-time').getAttribute('data-timestamp');
+                return isAscending ? timeA.localeCompare(timeB) : timeB.localeCompare(timeA);
+            } else {
+                // 获取每个文章组的活动数量（从stats文本中提取）
+                const countA = parseInt(a.querySelector('.article-stats').textContent.match(/(\d+) activities/)[1]);
+                const countB = parseInt(b.querySelector('.article-stats').textContent.match(/(\d+) activities/)[1]);
+                return isAscending ? countA - countB : countB - countA;
+            }
+        });
+
+        // Clear and re-append sorted groups
+        activityList.innerHTML = '';
+        articleGroups.forEach(group => activityList.appendChild(group));
     },
 
     getColorForLevel: function(level) {
@@ -475,37 +676,35 @@ const ZoTracerActivityLog = {
             'underline_annotation': 'Underlined text'
         };
 
-        let description = actionMap[activity.activityType] || activity.activityType;
+        let description = '<div class="activity-content">';
         
-        // Add article title if available
-        // if (activity.articleTitle) {
-        //     description += `: "${activity.articleTitle}"`;
-        // }
+        // Add action type with icon
+        const actionIcon = activity.activityType.includes('annotation') ? '✍️' : 
+                         activity.activityType.includes('note') ? '📝' : 
+                         activity.activityType.includes('item') ? '📄' : '🔍';
+        description += `<div class="activity-header">
+            <span class="activity-action">${actionIcon} ${actionMap[activity.activityType] || activity.activityType}</span>`;
+        
+        // Add color dot if available
+        if (activity.annotationColor) {
+            description += `<span class="color-dot" style="background-color: ${activity.annotationColor}"></span>`;
+        }
+        description += '</div>';
         
         // Add annotation details for annotation types
         if (activity.activityType.includes('annotation')) {
+            description += '<div class="activity-details">';
             if (activity.annotationText) {
-                description += ` - "${activity.annotationText.substring(0, 50)}${activity.annotationText.length > 50 ? '...' : ''}"`;
+                description += `<div class="annotation-text">
+                    <span class="quote-mark">"</span>${activity.annotationText.substring(0, 50)}${activity.annotationText.length > 50 ? '...' : ''}<span class="quote-mark">"</span>
+                </div>`;
             }
             if (activity.annotationComment) {
-                description += ` (Comment: ${activity.annotationComment})`;
+                description += `<div class="annotation-comment">
+                    <span class="comment-icon">💭</span> ${activity.annotationComment}
+                </div>`;
             }
-            // if (activity.annotationColor) {
-            //     description += ` <span class="color-dot" style="background-color: ${activity.annotationColor}"></span>`;
-            // }
-        }
-
-        // Add tags if present
-        if (Array.isArray(activity.articleTags) && activity.articleTags.length > 0) {
-            const tagStr = activity.articleTags.map(tag => {
-                try {
-                    const tagObj = typeof tag === 'string' ? JSON.parse(tag) : tag;
-                    return `<span class="activity-tag" ${tagObj.type ? `data-type="${tagObj.type}"` : ''}>${tagObj.tag}</span>`;
-                } catch (e) {
-                    return `<span class="activity-tag">${tag}</span>`;
-                }
-            }).join('');
-            description += ` ${tagStr}`;
+            description += '</div>';
         }
 
         // Add note text if available
@@ -513,13 +712,36 @@ const ZoTracerActivityLog = {
             try {
                 const noteContent = activity.noteText.match(/<p>(.*?)<\/p>/);
                 if (noteContent && noteContent[1]) {
-                    description += `: "${noteContent[1].substring(0, 50)}${noteContent[1].length > 50 ? '...' : ''}"`;
+                    description += `<div class="activity-details">
+                        <div class="note-text">
+                            <span class="quote-mark">"</span>${noteContent[1].substring(0, 50)}${noteContent[1].length > 50 ? '...' : ''}<span class="quote-mark">"</span>
+                        </div>
+                    </div>`;
                 }
             } catch (e) {
                 console.error("[ZoTracer] Error parsing note text:", e);
             }
         }
 
+        // Add tags if present
+        if (activity.annotationTags) {
+            try {
+                const tags = JSON.parse(activity.annotationTags);
+                if (Array.isArray(tags) && tags.length > 0) {
+                    description += '<div class="tags-container">';
+                    const tagStr = tags.map(tag => {
+                        return `<span class="activity-tag" data-tag="${tag.tag}">
+                            <span class="tag-icon">#</span>${tag.tag}
+                        </span>`;
+                    }).join('');
+                    description += tagStr + '</div>';
+                }
+            } catch (e) {
+                console.log('[ZoTracer] Error parsing annotation tags:', e);
+            }
+        }
+
+        description += '</div>';
         return description;
     },
 
@@ -756,7 +978,7 @@ const ZoTracerActivityLog = {
                         bottom: 0
                     }
                 },
-                barThickness: 3,
+                barThickness: 7,
                 maxBarThickness: 5,
                 barPercentage: 0.5,
                 categoryPercentage: 0.7
@@ -866,7 +1088,7 @@ const ZoTracerActivityLog = {
                         bottom: 0
                     }
                 },
-                barThickness: 3,
+                barThickness: 7,
                 maxBarThickness: 5,
                 barPercentage: 0.5,
                 categoryPercentage: 0.7
@@ -908,6 +1130,13 @@ const ZoTracerActivityLog = {
                 true
             );
         });
+    },
+    getActivityCount(activity) {
+        // Count annotations, notes, and other activities separately
+        const annotationCount = activity.annotationText ? 1 : 0;
+        const noteCount = activity.noteText ? 1 : 0;
+        const otherCount = activity.activityType !== 'highlight_annotation' && activity.activityType !== 'underline_annotation' && activity.activityType !== 'add_note' ? 1 : 0;
+        return annotationCount + noteCount + otherCount;
     },
 };
 

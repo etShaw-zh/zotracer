@@ -5,3 +5,6 @@ pref-input = 输入
 pref-help = { $name } Build { $version } { $time }
 pref-repository = 项目仓库：https://github.com/etShaw-zh/zotracer
 pref-author-url = 作者主页：https://xiaojianjun.cn
+pref-flomo-webhook = Flomo Webhook 地址
+    .title = 在此输入您的 Flomo webhook 地址
+    .placeholder = https://flomoapp.com/iwh/...
