@@ -525,7 +525,7 @@ const ZoTracerActivityLog = {
             const filteredActivities = this.activities.filter(activity => {
                 const activityDate = new Date(activity.timestamp);
                 const matchesDate = activityDate >= startDate && activityDate <= endDate;
-                const matchesType = filterType === 'all' ? true : activity.activityType === filterType;
+                const matchesType = filterType === 'all' ? activity.activityType !== 'add_item' : activity.activityType === filterType
                 
                 // Check tag filters
                 const matchesTags = this.activeTagFilters.size === 0 || Array.from(this.activeTagFilters).some(tag => {

@@ -18,7 +18,7 @@
 
 ## Introduction
 
-ZoTracer is a [Zotero](https://www.zotero.org/) plugin that tracks your research activities, creating a timeline of actions like saving or opening references. Analyze your study habits and streamline your research process with ease.
+ZoTracer is a [Zotero](https://www.zotero.org/) plugin that not only tracks and records your research activities (such as reading and saving references), but also generates detailed timeline views and supports seamless export of research notes to knowledge management platforms like [Flomo](https://flomoapp.com/). Analyze your study habits and streamline your research process with ease.
 
 > [!tip]
 > 👁 Watch this repo so that you can be notified whenever there are fixes & updates.
@@ -26,7 +26,7 @@ ZoTracer is a [Zotero](https://www.zotero.org/) plugin that tracks your research
 ## Screenshots
 
 <p align="center">
-    <img src="doc/imgs/screenshot_log_view.png" width=60%/ alt="">
+    <img src="doc/imgs/screenshot.png" alt="">
 </p>
 
 ## Features
@@ -35,9 +35,9 @@ ZoTracer is a [Zotero](https://www.zotero.org/) plugin that tracks your research
   - Record research activities like reading, writing, and citing
   - Track literature management operations (adding, editing, organizing)
   - Monitor tab and reader usage
-- **Structured Data Export for Specific Workflows (Coming Soon)**
+- **Structured Data Export for Specific Workflows**
   - Support custom export formats and fields
-  - Seamless integration with other tools and platforms
+  - Seamless integration with other tools and platforms (e.g., to [Flomo](https://flomoapp.com/))
   - Facilitate data analysis and visualization
 - **AI-Supported Contextual Annotation (Coming Soon)**
   - Intelligent identification and extraction of key information
@@ -46,7 +46,7 @@ ZoTracer is a [Zotero](https://www.zotero.org/) plugin that tracks your research
 
 ## Quick Start
 
-1. Download the plugin from [ZoTracer](https://github.com/etShaw-zh/zotracer/releases)
+1. Download the plugin from [ZoTracer.xpi](https://github.com/etShaw-zh/zotracer/releases)
 2. Install the plugin through Zotero's Add-on Manager
 3. Your research activities will be automatically tracked
 4. Access activity logs through the plugin's interface
