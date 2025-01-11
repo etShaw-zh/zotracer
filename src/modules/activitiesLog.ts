@@ -14,14 +14,11 @@ export interface ActivityLogParams {
 
 export class ActivityLog {
   private static async cleanupCurrentItemWhenClose() {
-    if (Zotero.FLOMO_CONTENT.length > 0) {
-      await HttpClient.sendToFlomo(Zotero.FLOMO_CONTENT.join("\n"));
-    }
+
     Zotero.CURRENT_ARTICLE = null;
     Zotero.CURRENT_ATTACHMENT = null;
     Zotero.CURRENT_ANNOTATION = null;
     Zotero.CURRENT_NOTE = null;
-    Zotero.FLOMO_CONTENT = [];
   }
 
   private static async cleanupCurrentItemWhenSave() {
@@ -63,7 +60,6 @@ export class ActivityLog {
       }
 
       let itemType = item.itemType;
-      let content = '';
       if (itemType) {
         switch (itemType) {
           case "annotation": 
@@ -76,17 +72,6 @@ export class ActivityLog {
               switch (event) {
                 case 'add':
                   activityType = `${Zotero.CURRENT_ANNOTATION._annotationType}_annotation`;
-                  content =  (Zotero.CURRENT_ARTICLE.title) ? `[${Zotero.CURRENT_ARTICLE.title}] ` : '';
-                  content += (Zotero.CURRENT_ANNOTATION.annotationText) ? `Annotation:[${Zotero.CURRENT_ANNOTATION.annotationText}]` : '';
-                  content += (Zotero.CURRENT_ANNOTATION.annotationComment) ? `Comment(${Zotero.CURRENT_ANNOTATION.annotationComment})` : '';
-                  if (Zotero.CURRENT_ANNOTATION.annotationTags && Zotero.CURRENT_ANNOTATION.annotationTags.length > 0) {
-                    Zotero.CURRENT_ANNOTATION.annotationTags.forEach((tag: { tag: any }) => {
-                      content += `#${tag.tag} `;
-                    });
-                  }
-                  if (content !== '') {
-                    Zotero.FLOMO_CONTENT.push(content);
-                  }
                   break;
                 case 'modify':
                   activityType = 'modify_annotation';

@@ -444,6 +444,7 @@ const ZoTracerActivityLog = {
                 title.className = 'activity-title';
                 title.innerHTML = this.formatActivityDescription(activity);
                 title.href = '#';
+                title.style.textDecoration = 'none';
                 title.onclick = (event) => {
                     event.preventDefault();
                     if (activity.articleId) {
@@ -516,79 +517,110 @@ const ZoTracerActivityLog = {
 
     syncToFlomo: async function() {
         try {
-            const activityList = document.getElementById('activity-list');
-            if (!activityList) {
-                throw new Error('Activity list not found');
-            }
-
-            const articleGroups = Array.from(activityList.children);
-            let flomoContent = '# Zotero Research Activities\n\n';
-
-            for (const group of articleGroups) {
-                // Get article title
-                const titleElem = group.querySelector('.article-title');
-                if (!titleElem) continue;
-                const title = titleElem.textContent;
-
-                // Get activities
-                const activities = Array.from(group.querySelectorAll('.activity-item'));
-                if (activities.length === 0) continue;
-
-                flomoContent += `## ${title}\n\n`;
-
-                for (const activity of activities) {
-                    // Get activity description
-                    const description = activity.querySelector('.activity-description');
-                    if (!description) continue;
-
-                    // Get timestamp
-                    const timeElem = activity.querySelector('.activity-time');
-                    const time = timeElem ? timeElem.textContent : '';
-
-                    // Extract text content without HTML tags
-                    const tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = description.innerHTML;
-                    const plainText = tempDiv.textContent || tempDiv.innerText || '';
-
-                    // Format activity entry
-                    flomoContent += `- ${plainText} (${time})\n`;
-
-                    // Add tags if present
-                    const tags = Array.from(activity.querySelectorAll('.activity-tag'));
-                    if (tags.length > 0) {
-                        const tagStr = tags.map(tag => `#${tag.textContent.trim()}`).join(' ');
-                        flomoContent += `  ${tagStr}\n`;
-                    }
-
-                    flomoContent += '\n';
-                }
-            }
-
-            // Send to Flomo using Zotero's HTTP client
-            const webhookUrl = Zotero.Prefs.get('extensions.zotracer.flomo.webhook.url');
-            if (!webhookUrl) {
-                throw new Error('Flomo webhook URL is not set. Please set it in ZoTracer preferences.');
-            }
-
-            const response = await fetch(webhookUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    content: flomoContent,
-                }),
+            // Get the currently filtered activities
+            const { startDate, endDate } = this.getDateRange();
+            const filterType = this.filterType.value;
+            
+            // Filter activities based on current filters
+            const filteredActivities = this.activities.filter(activity => {
+                const activityDate = new Date(activity.timestamp);
+                const matchesDate = activityDate >= startDate && activityDate <= endDate;
+                const matchesType = filterType === 'all' ? true : activity.activityType === filterType;
+                
+                // Check tag filters
+                const matchesTags = this.activeTagFilters.size === 0 || Array.from(this.activeTagFilters).some(tag => {
+                    return activity.annotationTags && activity.annotationTags.includes(tag);
+                });
+                
+                // Check color filters
+                const matchesColors = this.activeColorFilters.size === 0 || Array.from(this.activeColorFilters).some(color => {
+                    return activity.annotationColor === color;
+                });
+                
+                return matchesDate && matchesType && matchesTags && matchesColors;
             });
 
-            if (!response.ok) {
-                throw new Error(`Failed to send to Flomo: ${response.statusText}`);
+            // Group activities by article
+            const groupedByArticle = {};
+            filteredActivities.forEach(activity => {
+                const title = activity.articleTitle || 'Other Activities';
+                if (!groupedByArticle[title]) {
+                    groupedByArticle[title] = [];
+                }
+                groupedByArticle[title].push(activity);
+            });
+
+            let flomoContent = '';
+
+            // Format content for each article
+            for (const [title, activities] of Object.entries(groupedByArticle)) {
+                // Add article title as a memo title
+                flomoContent += `# 📖 ${title}\n\n`;
+
+                for (const activity of activities) {
+                    // Get activity type and determine icon
+                    let icon = '📝'; // Default icon for notes
+                    if (activity.activityType === 'highlight_annotation') {
+                        icon = '💡';
+                    } else if (activity.activityType === 'underline_annotation') {
+                        icon = '📌';
+                    }
+
+                    // Add annotation text or note content
+                    if (activity.annotationText) {
+                        flomoContent += `${icon} ${activity.annotationText}\n`;
+                    } else if (activity.noteText) {
+                        // Extract note content from HTML
+                        const noteMatch = activity.noteText.match(/<p>(.*?)<\/p>/);
+                        if (noteMatch) {
+                            flomoContent += `${icon} ${noteMatch[1]}\n`;
+                        }
+                    }
+
+                    // Add annotation comment if present
+                    if (activity.annotationComment) {
+                        flomoContent += `💭 ${activity.annotationComment}\n`;
+                    }
+
+                    // Add tags if present
+                    if (activity.annotationTags) {
+                        try {
+                            const tags = JSON.parse(activity.annotationTags);
+                            if (Array.isArray(tags) && tags.length > 0) {
+                                const tagStr = tags.map(tag => {
+                                    // Replace spaces with underscores in tag
+                                    const formattedTag = tag.tag.replace(/\s+/g, '_');
+                                    return `#${formattedTag}`;
+                                }).join(' ');
+                                flomoContent += `${tagStr}\n`;
+                            }
+                        } catch (e) {
+                            console.error('[ZoTracer] Error parsing annotation tags:', e);
+                        }
+                    }
+
+                    // Add timestamp
+                    flomoContent += `_${new Date(activity.timestamp).toLocaleString()}_\n\n`;
+                }
+
+                // Add separator between articles
+                flomoContent += '---\n\n';
             }
-            
-            // Show success message
-            alert("Successfully synced activities to Flomo!");
+
+            // Add source tag at the end
+            flomoContent += '#zotero #research';
+
+            // Send to Flomo using Zotero's HTTP client
+            const httpClient = Zotero.ZoTracer.HttpClient;
+            const response = await httpClient.sendToFlomo(flomoContent);
+            alert("✨ 同步成功！\n\n您的阅读笔记已成功保存到 Flomo 📚");
         } catch (error) {
             console.error('[ZoTracer] Error syncing to Flomo:', error);
-            alert(`Failed to sync to Flomo: ${error.message}`);
+            if (error.message.includes("PRO membership")) {
+                alert("⭐️ 需要升级\n\n此功能需要 Flomo PRO 会员才能使用\n请升级您的 Flomo 账户以使用此功能");
+            } else {
+                alert("❌ 同步失败\n\n无法保存到 Flomo，请检查：\n1. 网络连接是否正常\n2. Webhook 地址是否正确\n\n详细错误：" + error.message);
+            }
         }
     },
 

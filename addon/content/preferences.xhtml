@@ -20,8 +20,13 @@
         style="width: 400px;"
       ></html:input>
     </hbox>
-    <html:p style="margin: 5px 0; color: var(--text-color-secondary); font-size: 0.9em;">
-      Get your webhook URL from https://flomoapp.com/mine?source=incoming_webhook
+    <html:p style="margin: 5px 0;">
+      <html:a 
+        href="#"
+        onclick="Zotero.launchURL('https://flomoapp.com/mine?source=incoming_webhook'); return false;"
+      >
+        Get your webhook URL from https://flomoapp.com/mine?source=incoming_webhook
+      </html:a>
     </html:p>
   </vbox>
   <!-- <label><html:h2 data-l10n-id="pref-title"></html:h2></label>
@@ -44,22 +49,20 @@
   <hbox class="virtualized-table-container" flex="1" height="300px">
     <html:div id="__addonRef__-table-container" />
   </hbox> -->
-  <vbox>
+  <vbox style="margin: 10px 0;">
     <html:a 
-      href="https://github.com/etShaw-zh/zotracer"
-      target="_blank"
-      style="text-decoration: none; color: var(--text-color); margin: 5px 0;"
+      href="#"
+      onclick="Zotero.launchURL('https://github.com/etShaw-zh/zotracer'); return false;"
     >
       <html:label
         data-l10n-id="pref-repository"
       ></html:label>
     </html:a>
   </vbox>
-  <vbox>
+  <vbox style="margin: 10px 0;">
     <html:a 
-      href="https://xiaojianjun.cn"
-      target="_blank"
-      style="text-decoration: none; color: var(--text-color); margin: 5px 0;"
+      href="#"
+      onclick="Zotero.launchURL('https://xiaojianjun.cn'); return false;"
     >
       <html:label
         data-l10n-id="pref-author-url"

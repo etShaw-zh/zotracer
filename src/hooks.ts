@@ -3,6 +3,7 @@ import { createZToolkit } from "./utils/ztoolkit";
 
 import { registerPrefsScripts } from "./modules/preferenceScript";
 import { DatabaseManager } from "./modules/database";
+import { HttpClient } from "./utils/http";
 import { UIManager } from "./modules/ui";
 import { ActivityLog, ActivityType } from "./modules/activitiesLog";
 
@@ -25,6 +26,7 @@ async function onStartup() {
   const dbManager = DatabaseManager.getInstance();
   await dbManager.init();
   Zotero.ZoTracer.DatabaseManager = DatabaseManager;
+  Zotero.ZoTracer.HttpClient = HttpClient;
 
   registerActivityNotifier();
   await Promise.all(
@@ -36,7 +38,6 @@ async function onStartup() {
   Zotero.CURRENT_ATTACHMENT = null;
   Zotero.CURRENT_ANNOTATION = null;
   Zotero.CURRENT_NOTE = null;
-  Zotero.FLOMO_CONTENT = [];
 }
 
 async function onMainWindowLoad(win: Window): Promise<void> {
