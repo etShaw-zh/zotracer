@@ -1,4 +1,5 @@
 import { DatabaseManager } from "./database";
+import { HttpClient } from "../utils/http";
 
 export type ActivityType = "file" | "tab" | "item" | "collection" | "library";
 export type ActivityEvent = string;
@@ -13,6 +14,7 @@ export interface ActivityLogParams {
 
 export class ActivityLog {
   private static async cleanupCurrentItemWhenClose() {
+
     Zotero.CURRENT_ARTICLE = null;
     Zotero.CURRENT_ATTACHMENT = null;
     Zotero.CURRENT_ANNOTATION = null;
@@ -47,7 +49,7 @@ export class ActivityLog {
         ztoolkit.log("[ZoTracer] Warning: No activity ID provided", { type, event });
         return;
       }
-
+      
       let activityType = `${event}_${type}`;
       const item = await this.getZoteroItem(activityId);
       if (activityType === 'close_file') this.cleanupCurrentItemWhenClose();

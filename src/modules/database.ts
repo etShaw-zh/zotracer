@@ -138,6 +138,12 @@ export class DatabaseManager {
     return await this.db.queryAsync(query, params);
   }
 
+  public async getActivitiesSimple() {
+    const query = `SELECT * FROM user_activities where activityType 
+    in ('highlight_annotation', 'underline_annotation', 'add_note', 'add_item', 'modify_annotation') ORDER BY timestamp DESC`;
+    return await this.db.queryAsync(query);
+  }
+
   public async getTags() {
     const query = `SELECT DISTINCT annotationTags FROM user_activities WHERE annotationTags IS NOT NULL`;
     return await this.db.queryAsync(query);
