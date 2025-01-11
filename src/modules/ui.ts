@@ -36,15 +36,17 @@ export class UIManager {
       });
 
       const toolbar = this.win.document.getElementById("zotero-items-toolbar");
-      if (toolbar && button) {
-        toolbar.appendChild(button);
+      const spacer = this.win.document.querySelector("#zotero-items-toolbar spacer");
+      
+      if (toolbar && button && spacer) {
+        toolbar.insertBefore(button, spacer);
 
         // Add click event listener
         button.addEventListener("click", () => {
           this.openActivityLogWindow();
         });
       } else {
-        ztoolkit.log("[ZoTracer] Toolbar or button element not found");
+        ztoolkit.log("[ZoTracer] Toolbar, spacer or button element not found");
       }
     } catch (error) {
       ztoolkit.log("[ZoTracer] Error registering toolbar button:", error);
