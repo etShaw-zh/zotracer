@@ -1,6 +1,6 @@
 {
   "name": "zotracer",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Tracks your research activities, creates detailed timelines, and exports notes to platforms like Flomo.",
   "config": {
     "addonName": "ZoTracer",
