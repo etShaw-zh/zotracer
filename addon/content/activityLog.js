@@ -376,17 +376,20 @@ const ZoTracerActivityLog = {
         // Group activities by article title
         const groupedByArticle = {};
         activities.forEach(activity => {
-            const title = activity.articleTitle || 'Other Activities';
-            if (!groupedByArticle[title]) {
-                groupedByArticle[title] = {
+            const articleKey = activity.articleKey || 'Other Activities';
+            const articleTitle = activity.articleTitle || 'Other Activities';
+            if (!groupedByArticle[articleKey]) {
+                groupedByArticle[articleKey] = {
                     activities: [],
-                    lastModified: new Date(0)
+                    lastModified: new Date(0),
+                    articleTitle
                 };
             }
-            groupedByArticle[title].activities.push(activity);
+            groupedByArticle[articleKey].activities.push(activity);
             const activityDate = new Date(activity.timestamp);
-            if (activityDate > groupedByArticle[title].lastModified) {
-                groupedByArticle[title].lastModified = activityDate;
+            if (activityDate > groupedByArticle[articleKey].lastModified) {
+                groupedByArticle[articleKey].lastModified = activityDate;
+                groupedByArticle[articleKey].articleTitle = articleTitle;
             }
         });
 
@@ -395,7 +398,7 @@ const ZoTracerActivityLog = {
             .sort(([, a], [, b]) => b.lastModified - a.lastModified);
 
         // Create article groups
-        sortedArticles.forEach(([title, data]) => {
+        sortedArticles.forEach(([articleKey, data]) => {
             const articleGroup = document.createElement('div');
             articleGroup.className = 'article-group';
 
@@ -407,8 +410,8 @@ const ZoTracerActivityLog = {
             headerContent.className = 'article-header-content';
             
             const titleEl = document.createElement('a');
-            titleEl.className = 'article-title';
-            titleEl.textContent = title;
+            titleEl.className = 'article-title';    
+            titleEl.textContent = data.articleTitle;
             titleEl.href = '#';
             titleEl.onclick = (event) => {
                 event.preventDefault();
@@ -491,18 +494,18 @@ const ZoTracerActivityLog = {
         this.sortTimeAsc = false;
         this.sortCountAsc = false;
 
-        timeButton.textContent = `按时间排序 ${this.sortTimeAsc ? '▲' : '▼'}`;
-        countButton.textContent = `按活动数排序 ${this.sortCountAsc ? '▲' : '▼'}`;
+        timeButton.textContent = `Order by Time ${this.sortTimeAsc ? '▲' : '▼'}`;
+        countButton.textContent = `Order by Count ${this.sortCountAsc ? '▲' : '▼'}`;
 
         timeButton.addEventListener('click', () => {
             this.sortTimeAsc = !this.sortTimeAsc;
-            timeButton.textContent = `按时间排序 ${this.sortTimeAsc ? '▲' : '▼'}`;
+            timeButton.textContent = `Order by Time ${this.sortTimeAsc ? '▲' : '▼'}`;
             this.sortActivities('time', this.sortTimeAsc);
         });
 
         countButton.addEventListener('click', () => {
             this.sortCountAsc = !this.sortCountAsc;
-            countButton.textContent = `按活动数排序 ${this.sortCountAsc ? '▲' : '▼'}`;
+            countButton.textContent = `Order by Count ${this.sortCountAsc ? '▲' : '▼'}`;
             this.sortActivities('count', this.sortCountAsc);
         });
     },
@@ -543,19 +546,19 @@ const ZoTracerActivityLog = {
             // Group activities by article
             const groupedByArticle = {};
             filteredActivities.forEach(activity => {
-                const title = activity.articleTitle || 'Other Activities';
-                if (!groupedByArticle[title]) {
-                    groupedByArticle[title] = [];
+                const articleKey = activity.articleKey || 'Other Activities';
+                if (!groupedByArticle[articleKey]) {
+                    groupedByArticle[articleKey] = [];
                 }
-                groupedByArticle[title].push(activity);
+                groupedByArticle[articleKey].push(activity);
             });
 
             let flomoContent = '';
 
             // Format content for each article
-            for (const [title, activities] of Object.entries(groupedByArticle)) {
+            for (const [articleKey, activities] of Object.entries(groupedByArticle)) {
                 // Add article title as a memo title
-                flomoContent += `# 📖 ${title}\n\n`;
+                flomoContent += `# 📖 ${activities[0].articleTitle}\n\n`;
 
                 for (const activity of activities) {
                     // Get activity type and determine icon
@@ -888,10 +891,10 @@ const ZoTracerActivityLog = {
             }
         });
 
-        // Sort collections by activity count and get top 4
+        // Sort collections by activity count and get top n
         const topCollections = Array.from(collectionStats.entries())
             .sort((a, b) => b[1] - a[1])
-            .slice(0, 4);
+            .slice(0, 5);
 
         // Get collection names
         const collectionsWithNames = await Promise.all(
@@ -1008,6 +1011,7 @@ const ZoTracerActivityLog = {
             'highlight_annotation': 0,
             'underline_annotation': 0,
             'add_note': 0,
+            'select_tab': 0,
             'add_item': 0
         };
 
@@ -1027,13 +1031,15 @@ const ZoTracerActivityLog = {
             'Highlight Annotation',
             'Underline Annotation',
             'Add Notes',
-            'Add Items'
+            'Select Tab',
+            'Add Item'
         ];
         const data = [
             activityTypes['highlight_annotation'],
             activityTypes['underline_annotation'],
             activityTypes['add_note'],
-            activityTypes['add_item']
+            activityTypes['select_tab'],
+            activityTypes['add_item'],
         ];
 
         this.activityRadarChart = new Chart(ctx, {

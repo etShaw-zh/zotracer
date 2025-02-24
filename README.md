@@ -32,17 +32,19 @@ ZoTracer is a [Zotero](https://www.zotero.org/) plugin that not only tracks and 
 ## Features
 
 - **Comprehensive Activity Tracking**
-  - Record research activities like reading, writing, and citing
-  - Track literature management operations (adding, editing, organizing)
-  - Monitor tab and reader usage
+
+  - Track the complete research process: reading, note-taking, and citation
+  - Precisely monitor literature management operations (collection, editing, organization)
+  - Real-time tracking of tab usage and reading behavior
+
+- **Quick Location Based on Activity History**
+
+  - Intuitive activity data visualization interface
+  - Flexible chronological and activity-based sorting
+  - One-click access to literature associated with historical activities
+
 - **Structured Data Export for Specific Workflows**
-  - Support custom export formats and fields
-  - Seamless integration with other tools and platforms (e.g., to [Flomo](https://flomoapp.com/))
-  - Facilitate data analysis and visualization
-- **AI-Supported Contextual Annotation (Coming Soon)**
-  - Intelligent identification and extraction of key information
-  - Automatic generation of tag and summary suggestions
-  - Personalized recommendations based on reading history
+  - Seamless integration with mainstream knowledge management tools (e.g., [Flomo](https://flomoapp.com/))
 
 ## Quick Start
 

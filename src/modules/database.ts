@@ -139,8 +139,7 @@ export class DatabaseManager {
   }
 
   public async getActivitiesSimple() {
-    const query = `SELECT * FROM user_activities where activityType 
-    in ('highlight_annotation', 'underline_annotation', 'add_note', 'add_item', 'modify_annotation') ORDER BY timestamp DESC`;
+    const query = `SELECT * FROM user_activities WHERE articleKey IS NOT NULL ORDER BY timestamp DESC`;
     return await this.db.queryAsync(query);
   }
 

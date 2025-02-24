@@ -22,25 +22,25 @@
                         <html:optgroup label="Annotations">
                             <html:option value="highlight_annotation">Highlight</html:option>
                             <html:option value="underline_annotation">Underline</html:option>
-                            <!-- <html:option value="modify_annotation">Modify Annotation</html:option> -->
+                            <html:option value="modify_annotation">Modify Annotation</html:option>
                         </html:optgroup>
                         <html:optgroup label="Notes">
                             <html:option value="add_note">Add Note</html:option>
                         </html:optgroup>
                         <html:optgroup label="Items">
                             <html:option value="add_item">Add Item</html:option>
-                            <!-- <html:option value="modify_item">Modify Item</html:option>
+                            <html:option value="index_item">Index Item</html:option>
+                            <html:option value="modify_item">Modify Item</html:option>
                             <html:option value="trash_item">Trash Item</html:option>
                             <html:option value="delete_item">Delete Item</html:option>
-                            <html:option value="index_item">Index Item</html:option>
-                            <html:option value="refresh_item">Refresh Item</html:option> -->
+                            <html:option value="refresh_item">Refresh Item</html:option>
                         </html:optgroup>
-                        <!-- <html:optgroup label="Files and Tabs">
+                        <html:optgroup label="Files and Tabs">
                             <html:option value="open_file">Open File</html:option>
-                            <html:option value="add_tab">Add Tab</html:option>
                             <html:option value="select_tab">Select Tab</html:option>
+                            <html:option value="add_tab">Add Tab</html:option>
                             <html:option value="close_tab">Close Tab</html:option>
-                        </html:optgroup> -->
+                        </html:optgroup> 
                     </html:select>
                 </html:div>
                 <html:div class="filter-group">
@@ -127,12 +127,12 @@
                 <html:div class="activity-header">
                     <html:h2>Activity Details</html:h2>
                     <html:div class="sort-controls">
-                        <html:button class="sort-button" id="sortByTime">按时间排序 ▼</html:button>
-                        <html:button class="sort-button" id="sortByCount">按活动数排序 ▼</html:button>
+                        <html:button class="sort-button" id="sortByTime">Order by Time ▼</html:button>
+                        <html:button class="sort-button" id="sortByCount">Order by Count ▼</html:button>
                         <html:div class="dropdown">
-                            <html:button class="sort-button" id="exportButton">导出数据 ▼</html:button>
+                            <html:button class="sort-button" id="exportButton">Export Data ▼</html:button>
                             <html:div class="dropdown-content">
-                                <html:a href="#" id="syncToFlomo">同步到 flomo</html:a>
+                                <html:a href="#" id="syncToFlomo">Sync to Flomo</html:a>
                             </html:div>
                         </html:div>
                     </html:div>
