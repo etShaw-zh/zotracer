@@ -21,8 +21,9 @@
   "license": "AGPL-3.0-or-later",
   "scripts": {
     "start": "zotero-plugin serve",
-    "build": "zotero-plugin build",
-    "lint": "prettier --write . && eslint . --fix",
+    "build": "zotero-plugin build && tsc --noEmit",
+    "lint:check": "prettier --check . && eslint .",
+    "lint:fix": "prettier --write . && eslint . --fix",
     "release": "zotero-plugin release",
     "test": "echo \"Error: no test specified\" && exit 1",
     "update-deps": "npm update --save"
