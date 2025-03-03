@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="addon/content/imgs/static_logo.png" width=45%/ alt="">
+    <img src="../addon/content/imgs/static_logo.png" width=45%/ alt="">
     <br>
     <div align="center">
         <img src="https://img.shields.io/github/license/etShaw-zh/zotracer?color=2E75B6"  alt="License">
