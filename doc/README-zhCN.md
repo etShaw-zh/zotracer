@@ -1,14 +1,15 @@
 <p align="center">
-    <img src="../addon/content/imgs/static_logo.png" width=45%/ alt="">
+    <img src="addon/content/imgs/static_logo.png" width=45%/ alt="">
     <br>
     <div align="center">
         <img src="https://img.shields.io/github/license/etShaw-zh/zotracer?color=2E75B6"  alt="License">
         <img src="https://img.shields.io/badge/Zotero-7-green?style=flat-square&logo=zotero&logoColor=CC2936" alt="zotero target version" />
-        <img src="https://img.shields.io/badge/Using-Zotero%20Plugin%20Template-blue?style=flat-square&logo=github" alt="Using Zotero Plugin Template" />
-        <img src="https://img.shields.io/github/stars/etShaw-zh/zotracer?color=2E75B6" alt="Stars" />
+        <img src="https://img.shields.io/github/stars/etShaw-zh/zotracer" alt="Stars" />
+        <img src="https://img.shields.io/github/issues/etShaw-zh/zotracer" alt="Issues" />
+        <img src="https://img.shields.io/github/issues-pr/etShaw-zh/zotracer" alt="Pull Requests" />
+        <br>
         <img src="https://img.shields.io/github/downloads/etShaw-zh/zotracer/total?logo=github&color=2E75B6" alt='download' />
         <img src="https://img.shields.io/github/downloads/etShaw-zh/zotracer/latest/total?color=2E75B6" alt='latest' />
-        <img src='https://readthedocs.org/projects/zotracer/badge/?version=latest' alt='Docs' />
     </div>
 </p>
 
@@ -18,15 +19,16 @@
 
 ## 简介
 
-ZoTracer 是一个 [Zotero](https://www.zotero.org/) 插件，它不仅能追踪和记录您的研究活动（如阅读、保存文献等），还能生成详细的时间线视图，并支持将研究笔记无缝导出到 [Flomo](https://flomoapp.com/) 等知识管理平台。
+zotracer 是一个 [Zotero](https://www.zotero.org/) 插件，它不仅能追踪和记录您的研究活动（如阅读、保存文献等），还能生成详细的时间线视图，并支持将研究笔记无缝导出到 [Flomo](https://flomoapp.com/) 等知识管理平台。
 
 > [!tip]
 > 👁 关注此仓库以获取修复和更新的通知。
+> 🔥 当前插件可以通过[Zotero插件市场](https://github.com/syt2/zotero-addons)下载。
 
 ## 界面预览
 
 <p align="center">
-    <img src="../doc/imgs/screenshot.png" alt="">
+    <img src="../doc/imgs/screenshot.jpg" alt="">
 </p>
 
 ## 功能特性
@@ -54,6 +56,13 @@ ZoTracer 是一个 [Zotero](https://www.zotero.org/) 插件，它不仅能追踪
 3. 您的研究活动将被自动追踪
 4. 通过插件界面访问活动日志
 5. 分析您的研究模式并优化工作流程（即将推出）
+
+## 感谢以下项目
+
+- [zotero](https://www.zotero.org/): 一个专注于文献管理的开源软件
+- [zotero-plugin-template](https://github.com/windingwind/zotero-plugin-template): 一个Zotero插件模板
+- [zotero-addons](https://github.com/syt2/zotero-addons): 一个非官方Zotero插件市场
+- [zotero-plugins](https://github.com/zotero-chinese/zotero-plugins): 一个Zotero插件中文社区
 
 ## 免责声明
 

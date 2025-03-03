@@ -4,11 +4,12 @@
     <div align="center">
         <img src="https://img.shields.io/github/license/etShaw-zh/zotracer?color=2E75B6"  alt="License">
         <img src="https://img.shields.io/badge/Zotero-7-green?style=flat-square&logo=zotero&logoColor=CC2936" alt="zotero target version" />
-        <img src="https://img.shields.io/badge/Using-Zotero%20Plugin%20Template-blue?style=flat-square&logo=github" alt="Using Zotero Plugin Template" />
-        <img src="https://img.shields.io/github/stars/etShaw-zh/zotracer?color=2E75B6" alt="Stars" />
+        <img src="https://img.shields.io/github/stars/etShaw-zh/zotracer" alt="Stars" />
+        <img src="https://img.shields.io/github/issues/etShaw-zh/zotracer" alt="Issues" />
+        <img src="https://img.shields.io/github/issues-pr/etShaw-zh/zotracer" alt="Pull Requests" />
+        <br>
         <img src="https://img.shields.io/github/downloads/etShaw-zh/zotracer/total?logo=github&color=2E75B6" alt='download' />
         <img src="https://img.shields.io/github/downloads/etShaw-zh/zotracer/latest/total?color=2E75B6" alt='latest' />
-        <img src='https://readthedocs.org/projects/zotracer/badge/?version=latest' alt='Docs' />
     </div>
 </p>
 
@@ -18,15 +19,16 @@
 
 ## Introduction
 
-ZoTracer is a [Zotero](https://www.zotero.org/) plugin that not only tracks and records your research activities (such as reading and saving references), but also generates detailed timeline views and supports seamless export of research notes to knowledge management platforms like [Flomo](https://flomoapp.com/). Analyze your study habits and streamline your research process with ease.
+zotracer is a [Zotero](https://www.zotero.org/) plugin that not only tracks and records your research activities (such as reading and saving references), but also generates detailed timeline views and supports seamless export of research notes to knowledge management platforms like [Flomo](https://flomoapp.com/). Analyze your study habits and streamline your research process with ease.
 
 > [!tip]
 > 👁 Watch this repo so that you can be notified whenever there are fixes & updates.
+> 🔥 The plugin is available for download from the [Zotero Add-ons](https://github.com/syt2/zotero-addons) repository.
 
-## Screenshots
+## Screenshot
 
 <p align="center">
-    <img src="doc/imgs/screenshot.png" alt="">
+    <img src="doc/imgs/screenshot.jpg" alt="">
 </p>
 
 ## Features
@@ -53,6 +55,13 @@ ZoTracer is a [Zotero](https://www.zotero.org/) plugin that not only tracks and 
 3. Your research activities will be automatically tracked
 4. Access activity logs through the plugin's interface
 5. Analyze your research patterns and optimize your workflow (coming soon)
+
+## Acknowledgments
+
+- [zotero](https://www.zotero.org/): An open-source software focusing on literature management
+- [zotero-plugin-template](https://github.com/windingwind/zotero-plugin-template): A Zotero plugin template
+- [zotero-addons](https://github.com/syt2/zotero-addons): An unofficial Zotero plugin market
+- [zotero-plugins](https://github.com/zotero-chinese/zotero-plugins): A Chinese community for Zotero plugins
 
 ## Disclaimer
 
